@@ -5,22 +5,56 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Link Stats</title>
+  <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
   <main>
-    <h1>Link stats</h1>
-    <!-- <form action="/api/short" method="POST"> -->
-    <section>
-      <h2>Enter your short link:</h2>
+    <h1>Show Notes</h1>
+    <section class="section-menu">
+      <nav>
+        <a href="/">Create</a>
+        <a class="active" href="/stats">Get Stats</a>
+      </nav>
+    </section>
+    <section class="section-form">
+      <h2>Get your stats:</h2>
+      <nav>
+        <button id="retrieval-type-userId" data-id="userId" type="button" class="retrieval-method">By User ID</button>
+        <button id="retrieval-type-episodeId" data-id="episodeId" type="button" class="retrieval-method">By Episode ID</button>
+        <button id="retrieval-type-shortUrl" data-id="shortUrl" type="button" class="retrieval-method">By Short URL</button>
+      </nav>
       <form id="linkStatsForm">
-        <label hidden for="shortUrl">Short URL</label>
-        <input type="text" name="shortUrl" id="shortUrl">
-        <button type="submit">Get Stats</button>
+        <div class="form-group hidden form-method" id="form-group-userId" data-id="userId">
+          <p>
+            <label for="userId">User ID</label>
+            <input class="input-retrieval-val" type="text" name="userId" id="userId" maxlength="50">
+          </p>
+          <p class="instructions">Get all link stats by user ID.</p>
+        </div>
+        <div class="form-group hidden form-method" id="form-group-episodeId" data-id="episodeId">
+          <p>
+          <label for="episodeId">Episode ID</label>
+          <input class="input-retrieval-val" type="text" name="episodeId" id="episodeId" maxlength="200">
+          </p>
+          <p class="instructions">Get all link stats by episode ID.</p>
+        </div>
+        <div class="form-group hidden form-method" id="form-group-shortUrl" data-id="shortUrl">
+          <p>
+            <label for="shortUrl">Short URL</label>
+            <input class="input-retrieval-val" type="text" name="shortUrl" id="shortUrl">
+          </p>
+          <p class="instructions">Get an individual link's stats</p>
+        </div>
+        <div class="form-group">
+          <button type="submit">Get Stats</button>
+        </div>
       </form>
     </section>
-    <section>
-      <div id="output">
-        <p >Clicks: <span id="stats-clicks"></span></p>
+    <section class="section-output">
+      <div id="output" class="hidden">
+        <div class="output-group" id="stat-results">
+          
+        </div>
       </div>
     </section>
   </main>

@@ -1,0 +1,67 @@
+body {
+  font-family: system-ui, sans-serif;
+  /* https://github.com/system-fonts/modern-font-stacks */
+}
+
+main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+section {
+  padding: 20px 0;
+  margin: 20px 0;
+  border-top: 1px solid #eee;
+}
+
+nav a {
+  color: #333;
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+nav a.active {
+  color: #007bff;
+}
+
+h1 {
+  text-align: center;
+}
+
+button.active {
+  background: #007bff;
+  color: #fff;
+}
+
+button[type="submit"] {
+  /* create blue button */
+  background: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.form-group, .output-group {
+  padding: 10px 0;
+}
+
+.instructions {
+  font-size: 0.8em;
+  color: #999;
+  padding: 0;
+}
+
+.section-menu {
+  text-align: center;
+}

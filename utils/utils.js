@@ -10,3 +10,30 @@ export function validateShortUrl(value) {
     value
   );
 }
+
+// export function toCamelCase(str) {
+//   return str
+//     .replace(/(?:^\w|[A-Z]|\b\w)/g, function (word, index) {
+//       return index === 0 ? word.toLowerCase() : word.toUpperCase();
+//     })
+//     .replace(/\s+/g, "");
+// }
+
+export function toCamelCase(str) {
+  // Remove any non-alphanumeric characters
+  const alphanumericRegex = /[^\w\s]/g;
+  str = str.replace(alphanumericRegex, '');
+
+  // Convert the first letter of each word to uppercase
+  const words = str.split(' ');
+  for (let i = 0; i < words.length; i++) {
+    words[i] = words[i][0].toUpperCase() + words[i].substr(1);
+  }
+
+  // Remove the spaces
+  str = words.join('');
+
+  // Return the result
+  return str;
+
+}

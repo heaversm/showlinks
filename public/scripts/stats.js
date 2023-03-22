@@ -2,14 +2,22 @@ console.log("stats");
 const handleSubmit = (e) => {
   e.preventDefault();
   //receive the form input origUrl value
-  const inputVal = document.getElementById("shortUrl").value;
+  const userIdVal = document.getElementById("userId").value;
+  const episodeIdVal = document.getElementById("episodeId").value;
+  const shortUrlVal = document.getElementById("shortUrl").value;
+
+  let postBody = userIdVal
+    ? `{"userId": "${userIdVal}"}`
+    : episodeIdVal
+    ? `{"episodeId": "${episodeIdVal}"}`
+    : `{"shortUrl": "${shortUrlVal}"}`;
 
   const options = {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: `{"shortUrl": "${inputVal}"}`,
+    body: postBody,
   };
 
   fetch(`/api/stats/`, options)
@@ -22,7 +30,30 @@ const handleSubmit = (e) => {
         //console.log(data);
         document.getElementById("stats-clicks").innerHTML = `${data.clicks}`;
       }
+      showOutput();
     });
+};
+
+const showOutput = () => {
+  document.getElementById("output").classList.toggle("hidden", false);
+};
+
+const clearRetrievalVals = () => {
+  document.getElementById("userId").value = "";
+  document.getElementById("episodeId").value = "";
+  document.getElementById("shortUrl").value = "";
+};
+
+const handleRetrievalMethodSelect = (e) => {
+  clearRetrievalVals();
+  const currentButtonId = e.target.dataset.id;
+  document.querySelectorAll(".form-method").forEach((el) => {
+    if (el.dataset.id === currentButtonId) {
+      el.classList.toggle("hidden", false);
+    } else {
+      el.classList.toggle("hidden", true);
+    }
+  });
 };
 
 window.addEventListener("DOMContentLoaded", function () {
@@ -32,4 +63,11 @@ window.addEventListener("DOMContentLoaded", function () {
       e.preventDefault(); // before the code
       handleSubmit(e);
     });
+
+  document.querySelectorAll(".retrieval-method").forEach((el) => {
+    el.addEventListener("click", function (e) {
+      e.preventDefault(); // before the code
+      handleRetrievalMethodSelect(e);
+    });
+  });
 });

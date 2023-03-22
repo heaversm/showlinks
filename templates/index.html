@@ -4,24 +4,61 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Short URL Creator</title>
+  <title>Show Notes URL Creator</title>
+  <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
   <main>
-    <h1>Short URL Creator</h1>
+    <h1>Show Notes</h1>
+    <section class="section-menu">
+      <nav>
+        <a class="active" href="/">Create</a>
+        <a href="/stats">Get Stats</a>
+      </nav>
+    </section>
     <!-- <form action="/api/short" method="POST"> -->
-    <section>
-      <h2>Long URL:</h2>
+    <section class="section-form">
+      
       <form id="linkCreatorForm">
-        <label hidden for="origUrl">URL</label>
-        <input type="text" name="origUrl" id="origUrl">
-        <button type="submit">Create Short Link</button>
+        <div class="form-group">
+          <label for="origUrl">Shownotes URL</label>
+          <input type="text" required name="origUrl" id="origUrl">
+          <p class="instructions">A URL you want analytics for</p>
+        </div>
+        <div class="form-group">
+          <p>
+            <label for="userId">User ID</label>
+            <input type="text" name="userId" id="userId" maxlength="50">
+          </p>
+          <p><button type="button" id="getUserId">I need one</button></p>
+          <p class="instructions">A user ID helps you track of all of your links in one place. Click to generate one. You'll need to remember this ID for future URLs you create.</p>
+        </div>
+        <div class="form-group">
+          <label for="episodeName">Episode Name</label>
+          <input type="text" name="episodeName" id="episodeName" maxlength="200">
+          <p class="instructions">Entering an episode name helps you group all of the links for each episode together. Keep this short and memorable so you can find your episode links later.</p>
+        </div>
+        <div class="form-group">
+          <button type="submit">Create Short Link</button>
+        </div>
       </form>
     </section>
     <section>
-      <div id="output">
-        <h2>Short URL:</h2>
-        <p id="shortUrl"></p>
+      <div id="output" class="hidden">
+        <div class="output-group">
+          <p class="bold">Short URL:</p>
+          <p id="outputShortUrl"></p>
+        </div>
+        <div class="output-group">
+          <p class="bold">User ID:</p>
+          <p id="outputUserId"></p>
+        </div>
+        <div class="output-group">
+          <p class="bold">Episode ID:</p>
+          <p id="outputEpisodeId"></p>
+        </div>
+        
+
       </div>
     </section>
   </main>

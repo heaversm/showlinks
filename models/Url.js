@@ -22,6 +22,16 @@ const UrlSchema = new mongoose.Schema({
     type: String,
     default: Date.now,
   },
+  userId: {
+    type: String,
+    required: false,
+    default: "",
+  },
+  episodeId: {
+    type: String,
+    required: false,
+    default: "",
+  },
 });
 
 export default mongoose.model('Url', UrlSchema);
