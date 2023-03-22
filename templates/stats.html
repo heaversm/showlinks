@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Link Stats</title>
+</head>
+<body>
+  <main>
+    <h1>Link stats</h1>
+    <!-- <form action="/api/short" method="POST"> -->
+    <section>
+      <h2>Enter your short link:</h2>
+      <form id="linkStatsForm">
+        <label hidden for="shortUrl">Short URL</label>
+        <input type="text" name="shortUrl" id="shortUrl">
+        <button type="submit">Get Stats</button>
+      </form>
+    </section>
+    <section>
+      <div id="output">
+        <p >Clicks: <span id="stats-clicks"></span></p>
+      </div>
+    </section>
+  </main>
+  <script src="scripts/stats.js"></script>
+</body>
+</html>

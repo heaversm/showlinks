@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Short URL Creator</title>
+</head>
+<body>
+  <main>
+    <h1>Short URL Creator</h1>
+    <!-- <form action="/api/short" method="POST"> -->
+    <section>
+      <h2>Long URL:</h2>
+      <form id="linkCreatorForm">
+        <label hidden for="origUrl">URL</label>
+        <input type="text" name="origUrl" id="origUrl">
+        <button type="submit">Create Short Link</button>
+      </form>
+    </section>
+    <section>
+      <div id="output">
+        <h2>Short URL:</h2>
+        <p id="shortUrl"></p>
+      </div>
+    </section>
+  </main>
+  <script src="scripts/index.js"></script>
+</body>
+</html>
