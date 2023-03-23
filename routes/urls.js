@@ -72,19 +72,44 @@ router.post("/stats", async (req, res) => {
 
   // if (validateUrl(shortUrl)) {
   //   console.log("valid url");
-  let urls = [];
+
   if (method === "userId") {
-    //
+    try {
+      const urls = await Url.find({ userId: userId });
+      if (urls && urls.length) {
+        res.json(urls);
+      } else {
+        res.json({
+          error: "user ID not found",
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).json("Server Error");
+    }
   } else if (method === "episodeId") {
-    //
+    try {
+      const urls = await Url.find({ episodeId: episodeId });
+      console.log("urls", urls.length);
+      if (urls && urls.length) {
+        res.json(urls);
+      } else {
+        res.json({
+          error: "episode ID not found",
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      res.status(500).json("Server Error");
+    }
   } else if (method === "shortUrl") {
     try {
-      console.log("find the short url");
       let url = await Url.findOne({ shortUrl });
-      console.log(url, shortUrl);
       if (url) {
-        res.json(url);
-        //urls.push(url);
+        //res.json(url);
+        const urls = [];
+        urls.push(url);
+        res.json(urls);
       } else {
         console.log("no url found");
         res.json({
@@ -96,10 +121,7 @@ router.post("/stats", async (req, res) => {
       res.status(500).json("Server Error");
     }
   }
-  res.json(urls);
-  // } else {
-  //   res.status(400).json("Invalid Short Url");
-  // }
+
 });
 
 export default router;

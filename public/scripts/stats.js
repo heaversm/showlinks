@@ -25,10 +25,25 @@ const handleSubmit = (e) => {
     .then((data) => {
       if (data.error) {
         console.log("error");
-        document.getElementById("stats-clicks").innerHTML = `${data.error}`;
+        document.getElementById("stat-results").innerHTML = `${data.error}`;
       } else {
-        //console.log(data);
-        document.getElementById("stats-clicks").innerHTML = `${data.clicks}`;
+        let items = "";
+        data.forEach((url) => {
+          let item = `<div class="result">`;
+
+          if (url.origUrl) {
+            item += `<p><span class="bold">Original URL</span>: <a href="${url.origUrl}" target="_blank" id="stats-origUrl">${url.origUrl}</a></p>`;
+          }
+          if (url.episodeId) {
+            item += `<p><span class="bold">Episode</span>: <span id="stats-episodeId">${url.episodeId}</span></p>`;
+          }
+          if (url.clicks) {
+            item += `<p><span class="bold">Clicks</span>: <span id="stats-clicks">${url.clicks}</span></p>`;
+          }
+          item += `</div>`;
+          items += item;
+        });
+        document.getElementById("stat-results").innerHTML = items;
       }
       showOutput();
     });

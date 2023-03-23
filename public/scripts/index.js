@@ -23,7 +23,6 @@ const handleSubmit = (e) => {
         console.log("error");
         document.getElementById("shortUrl").innerHTML = `${data.error}`;
       } else {
-        console.log(data);
         document.getElementById(
           "outputShortUrl"
         ).innerHTML = `<a href="${data.shortUrl}" target="_blank">${data.shortUrl}</a>`;
