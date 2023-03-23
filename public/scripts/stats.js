@@ -1,4 +1,19 @@
 console.log("stats");
+
+const formattedDateOptions = {
+  month: "2-digit",
+  day: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+};
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleString("en-US", formattedDateOptions);
+};
+
 const handleSubmit = (e) => {
   e.preventDefault();
   //receive the form input origUrl value
@@ -42,6 +57,18 @@ const handleSubmit = (e) => {
           }
           if (url.clicks) {
             item += `<p><span class="bold">Clicks</span>: <span id="stats-clicks">${url.clicks}</span></p>`;
+          }
+          console.log(url);
+          if (url.urlStats) {
+            let statDates = `<details><summary>Details:</summary><ul>`;
+            url.urlStats.forEach((stat) => {
+              console.log(stat);
+              const statDate = new Date(parseInt(stat.accessDate));
+              const formattedStatDate = formatDate(statDate);
+              statDates += `<li>Date: ${formattedStatDate}<br/>Browser: ${stat.browser}<br/>OS: ${stat.os}</li>`;
+            });
+            statDates += `</ul></details>`;
+            item += statDates;
           }
           item += `</div>`;
           items += item;

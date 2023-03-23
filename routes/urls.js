@@ -2,6 +2,7 @@ import path from "path";
 import express from "express";
 import { nanoid } from "nanoid";
 import Url from "../models/Url.js";
+import Stat from "../models/Stat.js";
 import { validateUrl, toCamelCase } from "../utils/utils.js";
 import dotenv from "dotenv";
 dotenv.config({ path: "../config/.env" });
@@ -75,8 +76,40 @@ router.post("/stats", async (req, res) => {
   if (method === "userId") {
     try {
       const urls = await Url.find({ userId: userId });
+      const urlsWithStats = [];
       if (urls && urls.length) {
-        res.json(urls);
+        for (const url of urls) {
+          //console.log(url);
+          const {
+            userId,
+            episodeName,
+            episodeId,
+            clicks,
+            origUrl,
+            shortUrl,
+            urlId,
+            date,
+          } = url;
+          const urlStats = await Stat.find({ urlRef: url.urlId });
+          //console.log(url, urlStats);
+          //console.log("stat");
+          //join the urlStats and url together in one object
+          const urlWithStats = {
+            userId,
+            episodeName,
+            episodeId,
+            clicks,
+            origUrl,
+            shortUrl,
+            urlId,
+            date,
+            urlStats,
+          };
+          //console.log(urlWithStats);
+          urlsWithStats.push(urlWithStats);
+        }
+        //console.log("all stats", urlsWithStats);
+        res.json(urlsWithStats);
       } else {
         res.json({
           error: "user ID not found",
