@@ -34,8 +34,11 @@ const handleSubmit = (e) => {
           if (url.origUrl) {
             item += `<p><span class="bold">Original URL</span>: <a href="${url.origUrl}" target="_blank" id="stats-origUrl">${url.origUrl}</a></p>`;
           }
-          if (url.episodeId) {
-            item += `<p><span class="bold">Episode</span>: <span id="stats-episodeId">${url.episodeId}</span></p>`;
+          if (url.shortUrl) {
+            item += `<p><span class="bold">Short URL</span>: <a href="${url.shortUrl}" target="_blank" id="stats-shortUrl">${url.shortUrl}</a></p>`;
+          }
+          if (url.episodeName) {
+            item += `<p><span class="bold">Episode</span>: <span id="stats-episodeName">${url.episodeName}</span></p>`;
           }
           if (url.clicks) {
             item += `<p><span class="bold">Clicks</span>: <span id="stats-clicks">${url.clicks}</span></p>`;

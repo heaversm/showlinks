@@ -27,6 +27,11 @@ const UrlSchema = new mongoose.Schema({
     required: false,
     default: "",
   },
+  episodeName: {
+    type: String,
+    required: false,
+    default: "",
+  },
   episodeId: {
     type: String,
     required: false,

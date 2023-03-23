@@ -30,9 +30,7 @@ router.post("/short", async (req, res) => {
   //generate episodeId
   let episodeId = "";
   if (episodeName && episodeName !== "") {
-    console.log("episodeName", episodeName);
     episodeId = toCamelCase(episodeName);
-    console.log("episodeId", episodeId);
   }
 
   if (validateUrl(origUrl)) {
@@ -48,6 +46,7 @@ router.post("/short", async (req, res) => {
           shortUrl,
           urlId,
           date: new Date(),
+          episodeName,
           episodeId,
           userId,
         });
@@ -90,7 +89,6 @@ router.post("/stats", async (req, res) => {
   } else if (method === "episodeId") {
     try {
       const urls = await Url.find({ episodeId: episodeId });
-      console.log("urls", urls.length);
       if (urls && urls.length) {
         res.json(urls);
       } else {
@@ -121,7 +119,6 @@ router.post("/stats", async (req, res) => {
       res.status(500).json("Server Error");
     }
   }
-
 });
 
 export default router;
