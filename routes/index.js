@@ -54,6 +54,7 @@ router.get("/:urlId", async (req, res) => {
         browser: browser,
         os: os,
         device: device,
+        accessDate: new Date(),
       });
 
       await stat.save();

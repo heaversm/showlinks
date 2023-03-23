@@ -8,8 +8,8 @@ const StatSchema = new mongoose.Schema({
   accessDate: {
     type: String,
     default: Date.now,
-    required: false,
   },
+
   browser: {
     type: String,
     required: false,

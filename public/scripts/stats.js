@@ -1,5 +1,3 @@
-console.log("stats");
-
 const formattedDateOptions = {
   month: "2-digit",
   day: "2-digit",
@@ -58,20 +56,39 @@ const handleSubmit = (e) => {
           if (url.clicks) {
             item += `<p><span class="bold">Clicks</span>: <span id="stats-clicks">${url.clicks}</span></p>`;
           }
-          console.log(url);
           if (url.urlStats) {
-            let statDates = `<details><summary>Details:</summary><ul>`;
-            url.urlStats.forEach((stat) => {
-              console.log(stat);
-              const statDate = new Date(parseInt(stat.accessDate));
-              const formattedStatDate = formatDate(statDate);
-              statDates += `<li>Date: ${formattedStatDate}<br/>Browser: ${stat.browser}<br/>OS: ${stat.os}</li>`;
+            let clicksByDate = [];
+            url.urlStats.forEach((stat, i) => {
+              const date = new Date(stat.accessDate);
+              const month = date.getMonth() + 1; // Add 1 because getMonth() returns 0-indexed months
+              const day = date.getDate();
+              const formattedDate = `${month}/${day}`;
+
+              const index = clicksByDate.findIndex(
+                (item) => item.date === formattedDate
+              );
+              if (index === -1) {
+                // If this date hasn't been added yet, create a new object with count = 1
+                clicksByDate.push({ date: formattedDate, count: 1 });
+              } else {
+                // If this date already exists in clicksByDate, increment its count
+                clicksByDate[index].count++;
+              }
             });
-            statDates += `</ul></details>`;
-            item += statDates;
+            //console.log(clicksByDate);
+            new Chart(document.getElementById("stat-chart"), {
+              type: "line",
+              data: {
+                labels: clicksByDate.map((row) => row.date),
+                datasets: [
+                  {
+                    label: "Clicks by day",
+                    data: clicksByDate.map((row) => row.count),
+                  },
+                ],
+              },
+            });
           }
-          item += `</div>`;
-          items += item;
         });
         document.getElementById("stat-results").innerHTML = items;
       }
