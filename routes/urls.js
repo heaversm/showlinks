@@ -22,46 +22,55 @@ router.get("/generateUserId", async (req, res) => {
 
 // Short URL Generator
 router.post("/short", async (req, res) => {
-  const { origUrl, userId, episodeName } = req.body;
+  const { origUrls, userId, episodeName } = req.body;
   const base = process.env.BASE;
-  console.log(req.body);
-
-  const urlId = nanoid();
 
   //generate episodeId
   let episodeId = "";
+
   if (episodeName && episodeName !== "") {
     episodeId = toCamelCase(episodeName);
   }
 
-  if (validateUrl(origUrl)) {
-    try {
-      let url = await Url.findOne({ origUrl });
-      if (url) {
-        res.json(url);
-      } else {
-        const shortUrl = `${base}/${urlId}`;
+  let shortUrls = [];
+  for (const origUrl of origUrls) {
+    if (validateUrl(origUrl)) {
+      try {
+        let url = await Url.findOne({ origUrl });
+        if (url) {
+          console.log("url exists");
+          shortUrls.push(url);
+        } else {
+          const urlId = nanoid();
+          const shortUrl = `${base}/${urlId}`;
 
-        url = new Url({
-          origUrl,
-          shortUrl,
-          urlId,
-          date: new Date(),
-          episodeName,
-          episodeId,
-          userId,
-        });
+          url = new Url({
+            origUrl,
+            shortUrl,
+            urlId,
+            date: new Date(),
+            episodeName,
+            episodeId,
+            userId,
+          });
 
-        await url.save();
-        res.json(url);
+          await url.save();
+          shortUrls.push(url);
+        }
+      } catch (err) {
+        console.log(err);
+        res.status(500).json("Server Error");
       }
-    } catch (err) {
-      console.log(err);
-      res.status(500).json("Server Error");
+    } else {
+      res.status(400).json("Invalid Original Url");
     }
-  } else {
-    res.status(400).json("Invalid Original Url");
   }
+  const responseObj = {
+    shortUrls,
+    userId,
+    episodeId,
+  };
+  res.json(responseObj);
 });
 
 router.post("/stats", async (req, res) => {

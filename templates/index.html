@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Show Notes URL Creator</title>
   <link rel="stylesheet" href="styles/main.css">
+  <link href="styles/lib/quill.snow.css" rel="stylesheet" />
 </head>
 <body>
   <main>
@@ -21,10 +22,16 @@
       
       <form id="linkCreatorForm">
         <div class="form-group">
+          <label for="origUrl">Shownotes</label>
+          <p class="instructions">Paste your show notes in here. Any links you include will be found and reassigned a unique short URL that you can use to analyze clicks. Please avoid any other HTML tags.</p>
+          <!--<textarea id="origShownNotes" name="origShownNotes" required maxlength="10000"></textarea>-->
+          <div id="editor-container"></div>
+        </div>
+        <!--<div class="form-group">
           <label for="origUrl">Shownotes URL</label>
           <input type="text" required name="origUrl" id="origUrl">
           <p class="instructions">A URL you want analytics for</p>
-        </div>
+        </div>-->
         <div class="form-group">
           <p>
             <label for="userId">User ID</label>
@@ -46,8 +53,8 @@
     <section>
       <div id="output" class="hidden">
         <div class="output-group">
-          <p class="bold">Short URL:</p>
-          <p id="outputShortUrl"></p>
+          <p class="bold">URLs:</p>
+          <div id="outputShortUrl"></div>
         </div>
         <div class="output-group">
           <p class="bold">User ID:</p>
@@ -64,6 +71,7 @@
       </div>
     </section>
   </main>
+  <script src="scripts/lib/quill.js"></script>
   <script src="scripts/index.js"></script>
 </body>
 </html>

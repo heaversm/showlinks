@@ -44,6 +44,11 @@ button[type="submit"] {
   cursor: pointer;
 }
 
+#editor-container {
+  height: 375px;
+}
+
+
 .hidden {
   display: none;
 }
