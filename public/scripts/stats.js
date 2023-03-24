@@ -68,6 +68,9 @@ const handleSubmit = (e) => {
           if (url.clicks) {
             item += `<p><span class="bold">Clicks</span>: <span id="stats-clicks">${url.clicks}</span></p>`;
           }
+          item += `</div>`;
+          items += item;
+
           if (url.urlStats) {
             url.urlStats.forEach((stat, i) => {
               const date = new Date(stat.accessDate);
