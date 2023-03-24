@@ -73,41 +73,48 @@ router.post("/stats", async (req, res) => {
   // if (validateUrl(shortUrl)) {
   //   console.log("valid url");
 
+  const getUrlsWithStats = async (urls) => {
+    const urlsWithStats = [];
+    for (const url of urls) {
+      //console.log(url);
+      const {
+        userId,
+        episodeName,
+        episodeId,
+        clicks,
+        origUrl,
+        shortUrl,
+        urlId,
+        date,
+      } = url;
+      const urlStats = await Stat.find({ urlRef: url.urlId });
+      //console.log(url, urlStats);
+      //console.log("stat");
+      //join the urlStats and url together in one object
+      const urlWithStats = {
+        userId,
+        episodeName,
+        episodeId,
+        clicks,
+        origUrl,
+        shortUrl,
+        urlId,
+        date,
+        urlStats,
+      };
+      //console.log(urlWithStats);
+      urlsWithStats.push(urlWithStats);
+    }
+
+    return urlsWithStats;
+  };
+
   if (method === "userId") {
     try {
       const urls = await Url.find({ userId: userId });
-      const urlsWithStats = [];
+
       if (urls && urls.length) {
-        for (const url of urls) {
-          //console.log(url);
-          const {
-            userId,
-            episodeName,
-            episodeId,
-            clicks,
-            origUrl,
-            shortUrl,
-            urlId,
-            date,
-          } = url;
-          const urlStats = await Stat.find({ urlRef: url.urlId });
-          //console.log(url, urlStats);
-          //console.log("stat");
-          //join the urlStats and url together in one object
-          const urlWithStats = {
-            userId,
-            episodeName,
-            episodeId,
-            clicks,
-            origUrl,
-            shortUrl,
-            urlId,
-            date,
-            urlStats,
-          };
-          //console.log(urlWithStats);
-          urlsWithStats.push(urlWithStats);
-        }
+        const urlsWithStats = await getUrlsWithStats(urls);
         //console.log("all stats", urlsWithStats);
         res.json(urlsWithStats);
       } else {
@@ -123,7 +130,8 @@ router.post("/stats", async (req, res) => {
     try {
       const urls = await Url.find({ episodeId: episodeId });
       if (urls && urls.length) {
-        res.json(urls);
+        const urlsWithStats = await getUrlsWithStats(urls);
+        res.json(urlsWithStats);
       } else {
         res.json({
           error: "episode ID not found",
@@ -140,7 +148,8 @@ router.post("/stats", async (req, res) => {
         //res.json(url);
         const urls = [];
         urls.push(url);
-        res.json(urls);
+        const urlsWithStats = await getUrlsWithStats(urls);
+        res.json(urlsWithStats);
       } else {
         console.log("no url found");
         res.json({

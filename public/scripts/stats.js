@@ -8,8 +8,19 @@ const formattedDateOptions = {
   hour12: false,
 };
 
+let canvasRef;
+
 const formatDate = (date) => {
   return new Date(date).toLocaleString("en-US", formattedDateOptions);
+};
+
+const sortByDate = (dateArray) => {
+  dateArray.sort((a, b) => {
+    const dateA = new Date("2022/" + a.date).getTime();
+    const dateB = new Date("2022/" + b.date).getTime();
+    return dateA - dateB;
+  });
+  return dateArray;
 };
 
 const handleSubmit = (e) => {
@@ -41,6 +52,7 @@ const handleSubmit = (e) => {
         document.getElementById("stat-results").innerHTML = `${data.error}`;
       } else {
         let items = "";
+        let clicksByDate = [];
         data.forEach((url) => {
           let item = `<div class="result">`;
 
@@ -57,7 +69,6 @@ const handleSubmit = (e) => {
             item += `<p><span class="bold">Clicks</span>: <span id="stats-clicks">${url.clicks}</span></p>`;
           }
           if (url.urlStats) {
-            let clicksByDate = [];
             url.urlStats.forEach((stat, i) => {
               const date = new Date(stat.accessDate);
               const month = date.getMonth() + 1; // Add 1 because getMonth() returns 0-indexed months
@@ -75,20 +86,43 @@ const handleSubmit = (e) => {
                 clicksByDate[index].count++;
               }
             });
-            //console.log(clicksByDate);
-            new Chart(document.getElementById("stat-chart"), {
-              type: "line",
-              data: {
-                labels: clicksByDate.map((row) => row.date),
-                datasets: [
-                  {
-                    label: "Clicks by day",
-                    data: clicksByDate.map((row) => row.count),
-                  },
-                ],
-              },
-            });
           }
+        });
+        clicksByDate = sortByDate(clicksByDate);
+
+        if (canvasRef) {
+          canvasRef.destroy();
+        }
+
+        canvasRef = new Chart(document.getElementById("stat-chart"), {
+          type: "line",
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                min: 0,
+                beginAtZero: true,
+                grace: 1,
+                ticks: {
+                  stepSize: 1,
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                display: false,
+              },
+            },
+          },
+          data: {
+            labels: clicksByDate.map((row) => row.date),
+            datasets: [
+              {
+                label: "Clicks by day",
+                data: clicksByDate.map((row) => row.count),
+              },
+            ],
+          },
         });
         document.getElementById("stat-results").innerHTML = items;
       }
