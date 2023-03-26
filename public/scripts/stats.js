@@ -65,9 +65,10 @@ const handleSubmit = (e) => {
           if (url.episodeName) {
             item += `<p><span class="bold">Episode</span>: <span id="stats-episodeName">${url.episodeName}</span></p>`;
           }
-          if (url.clicks) {
-            item += `<p><span class="bold">Clicks</span>: <span id="stats-clicks">${url.clicks}</span></p>`;
-          }
+          
+          item += `<p><span class="bold">Clicks</span>: <span id="stats-clicks">${
+            url.clicks || 0
+          }</span></p>`;
           item += `</div>`;
           items += item;
 

@@ -2,7 +2,6 @@ import path from "path";
 import express from "express";
 import { nanoid } from "nanoid";
 import Url from "../models/Url.js";
-import Stat from "../models/Stat.js";
 import { validateUrl, toCamelCase } from "../utils/utils.js";
 import dotenv from "dotenv";
 dotenv.config({ path: "../config/.env" });
@@ -82,53 +81,28 @@ router.post("/stats", async (req, res) => {
   // if (validateUrl(shortUrl)) {
   //   console.log("valid url");
 
-  const getUrlsWithStats = async (urls) => {
-    const urlsWithStats = [];
-    for (const url of urls) {
-      //console.log(url);
-      const {
-        userId,
-        episodeName,
-        episodeId,
-        clicks,
-        origUrl,
-        shortUrl,
-        urlId,
-        date,
-      } = url;
-      const urlStats = await Stat.find({ urlRef: url.urlId });
-      //console.log(url, urlStats);
-      //console.log("stat");
-      //join the urlStats and url together in one object
-      const urlWithStats = {
-        userId,
-        episodeName,
-        episodeId,
-        clicks,
-        origUrl,
-        shortUrl,
-        urlId,
-        date,
-        urlStats,
-      };
-      //console.log(urlWithStats);
-      urlsWithStats.push(urlWithStats);
-    }
-
-    return urlsWithStats;
-  };
-
   if (method === "userId") {
     try {
-      const urls = await Url.find({ userId: userId });
-
+      const urls = await Url.aggregate([
+        {
+          $match: {
+            userId: userId,
+          },
+        },
+        {
+          $lookup: {
+            from: "stats",
+            localField: "urlId",
+            foreignField: "urlRef",
+            as: "urlStats",
+          },
+        },
+      ]).exec();
       if (urls && urls.length) {
-        const urlsWithStats = await getUrlsWithStats(urls);
-        //console.log("all stats", urlsWithStats);
-        res.json(urlsWithStats);
+        res.json(urls);
       } else {
         res.json({
-          error: "user ID not found",
+          error: "user ID not found or no links associated with this ID",
         });
       }
     } catch (err) {
@@ -137,28 +111,52 @@ router.post("/stats", async (req, res) => {
     }
   } else if (method === "episodeId") {
     try {
-      const urls = await Url.find({ episodeId: episodeId });
+      const urls = await Url.aggregate([
+        {
+          $match: {
+            episodeId: episodeId,
+          },
+        },
+        {
+          $lookup: {
+            from: "stats",
+            localField: "urlId",
+            foreignField: "urlRef",
+            as: "urlStats",
+          },
+        },
+      ]).exec();
       if (urls && urls.length) {
-        const urlsWithStats = await getUrlsWithStats(urls);
-        res.json(urlsWithStats);
+        res.json(urls);
       } else {
         res.json({
-          error: "episode ID not found",
+          error: "Invalid episode ID or no links found",
         });
       }
+      res.json(urls);
     } catch (err) {
       console.log(err);
       res.status(500).json("Server Error");
     }
   } else if (method === "shortUrl") {
     try {
-      let url = await Url.findOne({ shortUrl });
-      if (url) {
-        //res.json(url);
-        const urls = [];
-        urls.push(url);
-        const urlsWithStats = await getUrlsWithStats(urls);
-        res.json(urlsWithStats);
+      const urls = await Url.aggregate([
+        {
+          $match: {
+            shortUrl: shortUrl,
+          },
+        },
+        {
+          $lookup: {
+            from: "stats",
+            localField: "urlId",
+            foreignField: "urlRef",
+            as: "urlStats",
+          },
+        },
+      ]).exec();
+      if (urls) {
+        res.json(urls);
       } else {
         console.log("no url found");
         res.json({
