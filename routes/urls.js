@@ -72,6 +72,34 @@ router.post("/short", async (req, res) => {
   res.json(responseObj);
 });
 
+const getStatsByMethod = async (method, methodVal, errorMsg) => {
+  const urls = await Url.aggregate([
+    {
+      $match: {
+        [method]: methodVal,
+      },
+    },
+    {
+      $lookup: {
+        from: "stats",
+        localField: "urlId",
+        foreignField: "urlRef",
+        as: "urlStats",
+      },
+    },
+  ]).exec();
+
+  if (urls && urls.length) {
+    return urls;
+  } else {
+    const errorResponse = {
+      error: errorMsg,
+    };
+    return errorResponse;
+  }
+};
+
+//stats retriever
 router.post("/stats", async (req, res) => {
   const { userId, episodeId, shortUrl } = req.body;
   const base = process.env.BASE;
@@ -80,93 +108,27 @@ router.post("/stats", async (req, res) => {
 
   // if (validateUrl(shortUrl)) {
   //   console.log("valid url");
-
-  if (method === "userId") {
-    try {
-      const urls = await Url.aggregate([
-        {
-          $match: {
-            userId: userId,
-          },
-        },
-        {
-          $lookup: {
-            from: "stats",
-            localField: "urlId",
-            foreignField: "urlRef",
-            as: "urlStats",
-          },
-        },
-      ]).exec();
-      if (urls && urls.length) {
-        res.json(urls);
-      } else {
-        res.json({
-          error: "user ID not found or no links associated with this ID",
-        });
-      }
-    } catch (err) {
-      console.log(err);
-      res.status(500).json("Server Error");
+  try {
+    let urls;
+    if (method === "userId") {
+      urls = await getStatsByMethod(
+        "userId",
+        userId,
+        "user ID not found or no links associated with this ID"
+      );
+    } else if (method === "episodeId") {
+      urls = await getStatsByMethod(
+        "episodeId",
+        episodeId,
+        "Invalid episode ID or no links found"
+      );
+    } else if (method === "shortUrl") {
+      urls = await getStatsByMethod("shortUrl", shortUrl, "URL not found");
     }
-  } else if (method === "episodeId") {
-    try {
-      const urls = await Url.aggregate([
-        {
-          $match: {
-            episodeId: episodeId,
-          },
-        },
-        {
-          $lookup: {
-            from: "stats",
-            localField: "urlId",
-            foreignField: "urlRef",
-            as: "urlStats",
-          },
-        },
-      ]).exec();
-      if (urls && urls.length) {
-        res.json(urls);
-      } else {
-        res.json({
-          error: "Invalid episode ID or no links found",
-        });
-      }
-      res.json(urls);
-    } catch (err) {
-      console.log(err);
-      res.status(500).json("Server Error");
-    }
-  } else if (method === "shortUrl") {
-    try {
-      const urls = await Url.aggregate([
-        {
-          $match: {
-            shortUrl: shortUrl,
-          },
-        },
-        {
-          $lookup: {
-            from: "stats",
-            localField: "urlId",
-            foreignField: "urlRef",
-            as: "urlStats",
-          },
-        },
-      ]).exec();
-      if (urls) {
-        res.json(urls);
-      } else {
-        console.log("no url found");
-        res.json({
-          error: "URL not found",
-        });
-      }
-    } catch (err) {
-      console.log(err);
-      res.status(500).json("Server Error");
-    }
+    res.json(urls);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json("Server Error");
   }
 });
 

@@ -48,6 +48,11 @@ button[type="submit"] {
   height: 375px;
 }
 
+.error {
+  color: #f00;
+  font-weight: bold;
+}
+
 
 .hidden {
   display: none;

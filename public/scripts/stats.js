@@ -48,8 +48,7 @@ const handleSubmit = (e) => {
     .then((res) => res.json())
     .then((data) => {
       if (data.error) {
-        console.log("error");
-        document.getElementById("stat-results").innerHTML = `${data.error}`;
+        showError(true, data.error);
       } else {
         let items = "";
         let clicksByDate = [];
@@ -65,7 +64,7 @@ const handleSubmit = (e) => {
           if (url.episodeName) {
             item += `<p><span class="bold">Episode</span>: <span id="stats-episodeName">${url.episodeName}</span></p>`;
           }
-          
+
           item += `<p><span class="bold">Clicks</span>: <span id="stats-clicks">${
             url.clicks || 0
           }</span></p>`;
@@ -129,10 +128,24 @@ const handleSubmit = (e) => {
           },
         });
         document.getElementById("stat-results").innerHTML = items;
+        showError(false);
       }
-      showOutput();
     });
 };
+
+const showError = (show = true, error = null) => {
+  if (show) {
+    console.log("error");
+    document.getElementById("output").classList.toggle("hidden", true);
+    document.getElementById("error").innerHTML = `${error}`;
+    document.getElementById("error").classList.toggle("hidden", false);
+  } else {
+    document.getElementById("error").innerHTML = "";
+    document.getElementById("output").classList.toggle("hidden", false);
+    document.getElementById("error").classList.toggle("hidden", true);
+  }
+};
+  
 
 const showOutput = () => {
   document.getElementById("output").classList.toggle("hidden", false);
