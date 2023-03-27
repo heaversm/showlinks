@@ -1,18 +1,4 @@
-const formattedDateOptions = {
-  month: "2-digit",
-  day: "2-digit",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: false,
-};
-
 let canvasRef;
-
-const formatDate = (date) => {
-  return new Date(date).toLocaleString("en-US", formattedDateOptions);
-};
 
 const sortByDate = (dateArray) => {
   dateArray.sort((a, b) => {
@@ -145,7 +131,6 @@ const showError = (show = true, error = null) => {
     document.getElementById("error").classList.toggle("hidden", true);
   }
 };
-  
 
 const showOutput = () => {
   document.getElementById("output").classList.toggle("hidden", false);

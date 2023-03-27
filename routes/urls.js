@@ -32,44 +32,55 @@ router.post("/short", async (req, res) => {
   }
 
   let shortUrls = [];
-  for (const origUrl of origUrls) {
-    if (validateUrl(origUrl)) {
-      try {
-        let url = await Url.findOne({ origUrl });
-        if (url) {
-          console.log("url exists");
-          shortUrls.push(url);
-        } else {
-          const urlId = nanoid();
-          const shortUrl = `${base}/${urlId}`;
+  if (origUrls && origUrls.length) {
+    for (const origUrl of origUrls) {
+      console.log(origUrl, "orig");
+      if (validateUrl(origUrl)) {
+        //valid url
+        try {
+          let url = await Url.findOne({ origUrl });
+          if (url) {
+            //url exists
+            shortUrls.push(url);
+          } else {
+            //new url
+            const urlId = nanoid();
+            const shortUrl = `${base}/${urlId}`;
 
-          url = new Url({
-            origUrl,
-            shortUrl,
-            urlId,
-            date: new Date(),
-            episodeName,
-            episodeId,
-            userId,
-          });
+            url = new Url({
+              origUrl,
+              shortUrl,
+              urlId,
+              date: new Date(),
+              episodeName,
+              episodeId,
+              userId,
+            });
 
-          await url.save();
-          shortUrls.push(url);
+            await url.save();
+            shortUrls.push(url);
+          }
+        } catch (err) {
+          console.log(err);
+          //res.status(500).json("Server Error");
         }
-      } catch (err) {
-        console.log(err);
-        res.status(500).json("Server Error");
+      } else {
+        //invalid url
+        console.log("invalid orig url", origUrl);
+        //res.status(400).json("Invalid Original Url");
       }
-    } else {
-      res.status(400).json("Invalid Original Url");
-    }
+    } //end for
+    const responseObj = {
+      shortUrls,
+      userId,
+      episodeId,
+    };
+    res.json(responseObj);
+  } //end if origUrls
+  else {
+    res.status(400).json("no URLs found");
   }
-  const responseObj = {
-    shortUrls,
-    userId,
-    episodeId,
-  };
-  res.json(responseObj);
+  
 });
 
 const getStatsByMethod = async (method, methodVal, errorMsg) => {

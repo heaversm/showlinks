@@ -51,13 +51,20 @@ const extractLinks = (editorContent) => {
   return links;
 };
 
+const replaceLinks = (editorRef, origUrls, shortUrls) => {
+  for (const url in shortUrls) {
+    editorRef.querySelectorAll(`a[href="${origUrls[url]}"]`).forEach((el) => {
+      el.href = shortUrls[url].shortUrl;
+    });
+  }
+};
+
 const handleSubmit = (e) => {
-  //const inputVal = document.getElementById("origUrl").value;
-  const editorContent = document.querySelector(".ql-editor").innerHTML;
+  const editorRef = document.querySelector(".ql-editor");
+  const editorContent = editorRef.innerHTML;
   const origUrls = extractLinks(editorContent);
   const userIdVal = document.getElementById("userId").value || "";
   const episodeNameVal = document.getElementById("episodeName").value || "";
-  // console.log(inputVal);
 
   const options = {
     method: "POST",
@@ -66,7 +73,6 @@ const handleSubmit = (e) => {
     },
     body: JSON.stringify({
       origUrls: origUrls,
-      //origUrl: inputVal,
       userId: userIdVal,
       episodeName: episodeNameVal,
     }),
@@ -76,20 +82,24 @@ const handleSubmit = (e) => {
     .then((res) => res.json())
     .then((data) => {
       if (data.error) {
-        console.log("error");
         document.getElementById("shortUrl").innerHTML = `${data.error}`;
       } else {
         if (data.shortUrls && data.shortUrls.length) {
           let output = "";
           for (const url of data.shortUrls) {
-            output += `<p class="url-item"><span class="orig-url">${url.origUrl}</span><br/><a class="short-url" href="${url.shortUrl}" target="_blank">${url.shortUrl}</a></p>`;
+            output += `<p class="url-item"><span class="output-label">Original URL: </span><a><href="${url.origUrl}" target="_blank">${url.origUrl}</a><br/><span class="output-label">Short URL: </span><span><a class="short-url" href="${url.shortUrl}" target="_blank">${url.shortUrl}</a></p>`;
           }
           document.getElementById("outputShortUrl").innerHTML = output;
+          replaceLinks(editorRef, origUrls, data.shortUrls);
+          document.getElementById(
+            "outputMsg"
+          ).innerHTML = `<p class="success">Success</p><p class="instructions">The links you provided in the editor above have been replaced with short URLs (listed below), that you can now access statistics on to find out how many people are making use of your show notes.</p>`;
+        } else {
+          document.getElementById(
+            "outputMsg"
+          ).innerHTML = `<p class="error">Error</p><p class="instructions">No short URLs generated</p>`;
+          document.getElementById("outputShortUrl").innerHTML = "<p>None</p>";
         }
-
-        // document.getElementById(
-        //   "outputShortUrl"
-        // ).innerHTML = `<a href="${data.shortUrl}" target="_blank">${data.shortUrl}</a>`;
 
         document.getElementById("outputUserId").innerText = `${
           (data.userId && data.userId) || "None specified"
