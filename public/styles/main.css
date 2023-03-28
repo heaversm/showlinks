@@ -48,6 +48,10 @@ button[type="submit"] {
   height: 375px;
 }
 
+#getUserId {
+  margin-bottom: 10px;
+}
+
 .error {
   color: #f00;
   font-weight: bold;

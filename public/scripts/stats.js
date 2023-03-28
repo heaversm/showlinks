@@ -1,5 +1,42 @@
 let canvasRef;
 
+const init = () => {
+  addListeners();
+};
+
+const addListeners = () => {
+  document
+    .getElementById("linkStatsForm")
+    .addEventListener("submit", function (e) {
+      e.preventDefault(); // before the code
+      handleSubmit(e);
+    });
+
+  document.querySelectorAll(".retrieval-method").forEach((el) => {
+    el.addEventListener("click", function (e) {
+      e.preventDefault(); // before the code
+      handleRetrievalMethodSelect(e);
+    });
+  });
+};
+
+const checkForUserId = () => {
+  const userId = getUserIdFromLocalStorage();
+  if (userId && userId.length) {
+    document.getElementById("userId").value = `${userId}`;
+  } else {
+    console.log("no user id");
+  }
+};
+
+const getUserIdFromLocalStorage = () => {
+  if (localStorage) {
+    return localStorage.getItem("shownotesUserId");
+  } else {
+    return null;
+  }
+};
+
 const sortByDate = (dateArray) => {
   dateArray.sort((a, b) => {
     const dateA = new Date("2022/" + a.date).getTime();
@@ -83,36 +120,39 @@ const handleSubmit = (e) => {
           canvasRef.destroy();
         }
 
-        canvasRef = new Chart(document.getElementById("stat-chart"), {
-          type: "line",
-          options: {
-            responsive: true,
-            scales: {
-              y: {
-                min: 0,
-                beginAtZero: true,
-                grace: 1,
-                ticks: {
-                  stepSize: 1,
+        if (clicksByDate && clicksByDate.length) {
+          canvasRef = new Chart(document.getElementById("stat-chart"), {
+            type: "line",
+            options: {
+              responsive: true,
+              scales: {
+                y: {
+                  min: 0,
+                  beginAtZero: true,
+                  grace: 1,
+                  ticks: {
+                    stepSize: 1,
+                  },
+                },
+              },
+              plugins: {
+                legend: {
+                  display: false,
                 },
               },
             },
-            plugins: {
-              legend: {
-                display: false,
-              },
+            data: {
+              labels: clicksByDate.map((row) => row.date),
+              datasets: [
+                {
+                  label: "Clicks by day",
+                  data: clicksByDate.map((row) => row.count),
+                },
+              ],
             },
-          },
-          data: {
-            labels: clicksByDate.map((row) => row.date),
-            datasets: [
-              {
-                label: "Clicks by day",
-                data: clicksByDate.map((row) => row.count),
-              },
-            ],
-          },
-        });
+          });
+        }
+
         document.getElementById("stat-results").innerHTML = items;
         showError(false);
       }
@@ -145,6 +185,9 @@ const clearRetrievalVals = () => {
 const handleRetrievalMethodSelect = (e) => {
   clearRetrievalVals();
   const currentButtonId = e.target.dataset.id;
+  if (currentButtonId === "userId") {
+    checkForUserId();
+  }
   document.querySelectorAll(".form-method").forEach((el) => {
     if (el.dataset.id === currentButtonId) {
       el.classList.toggle("hidden", false);
@@ -155,17 +198,5 @@ const handleRetrievalMethodSelect = (e) => {
 };
 
 window.addEventListener("DOMContentLoaded", function () {
-  document
-    .getElementById("linkStatsForm")
-    .addEventListener("submit", function (e) {
-      e.preventDefault(); // before the code
-      handleSubmit(e);
-    });
-
-  document.querySelectorAll(".retrieval-method").forEach((el) => {
-    el.addEventListener("click", function (e) {
-      e.preventDefault(); // before the code
-      handleRetrievalMethodSelect(e);
-    });
-  });
+  init();
 });

@@ -1,6 +1,16 @@
 const init = () => {
+  checkForUserId();
   initTextArea();
   addListeners();
+};
+
+const checkForUserId = () => {
+  const userId = getUserIdFromLocalStorage();
+  if (userId && userId.length) {
+    document.getElementById("userId").value = userId;
+  } else {
+    console.log("no user id");
+  }
 };
 
 const initTextArea = () => {
@@ -93,7 +103,7 @@ const handleSubmit = (e) => {
           replaceLinks(editorRef, origUrls, data.shortUrls);
           document.getElementById(
             "outputMsg"
-          ).innerHTML = `<p class="success">Success</p><p class="instructions">The links you provided in the editor above have been replaced with short URLs (listed below), that you can now access statistics on to find out how many people are making use of your show notes.</p>`;
+          ).innerHTML = `<p class="success">Success</p><p class="instructions">You can copy and paste your Show Notes above into wherever you host your podcast. Visit the "Get Stats" page to see who is interacting with your Show Notes. </p>`;
         } else {
           document.getElementById(
             "outputMsg"
@@ -128,12 +138,31 @@ const handleGetUserIdClick = (e) => {
         document.getElementById("userId").value = `${data.error}`;
       } else {
         document.getElementById("userId").value = `${data.userId}`;
-        hideGetUserId();
+        addUserIdToLocalStorage(data.userId);
+        hideGetUserIdButton();
       }
     });
 };
 
-const hideGetUserId = () => {
+const addUserIdToLocalStorage = (userId) => {
+  if (localStorage) {
+    localStorage.setItem("shownotesUserId", userId);
+  }
+};
+
+const getUserIdFromLocalStorage = () => {
+  if (localStorage) {
+    return localStorage.getItem("shownotesUserId");
+  } else {
+    return null;
+  }
+};
+
+const hideGetUserIdGroup = () => {
+  document.getElementById("userIdGroup").classList.toggle("hidden", true);
+};
+
+const hideGetUserIdButton = () => {
   document.getElementById("getUserId").classList.toggle("hidden", true);
 };
 
