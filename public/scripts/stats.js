@@ -46,6 +46,72 @@ const sortByDate = (dateArray) => {
   return dateArray;
 };
 
+const constructLinkDetails = (url) => {
+  let stat = `
+    <div class="result">
+      ${
+        url.origUrl &&
+        `<p>
+        <span class="bold">Original URL</span>:
+        <a href="${url.origUrl}" target="_blank" class="stats-origUrl">${url.origUrl}</a>
+      </p>`
+      }
+      ${
+        url.shortUrl &&
+        `<p>
+        <span class="bold">Short URL</span>: 
+        <a href="${url.shortUrl}" target="_blank" class="stats-shortUrl">${url.shortUrl}</a>
+      </p>`
+      }
+      ${
+        url.episodeName &&
+        `<p>
+        <span class="bold">Episode</span>: 
+        <span class="stats-episodeName">${url.episodeName}</span>
+      </p>`
+      }
+      <p>
+        <span class="bold">Clicks</span>: 
+        <span class="stats-clicks">${url.clicks || 0}</span>
+      </p>
+    </div>
+  `;
+  return stat;
+};
+
+const constructStatsGraph = (clicksByDate) => {
+  canvasRef = new Chart(document.getElementById("stat-chart"), {
+    type: "line",
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          min: 0,
+          beginAtZero: true,
+          grace: 1,
+          ticks: {
+            stepSize: 1,
+          },
+        },
+      },
+      plugins: {
+        legend: {
+          display: false,
+        },
+      },
+    },
+    data: {
+      labels: clicksByDate.map((row) => row.date),
+      datasets: [
+        {
+          label: "Clicks by day",
+          data: clicksByDate.map((row) => row.count),
+        },
+      ],
+    },
+  });
+};
+
 const handleSubmit = (e) => {
   e.preventDefault();
   //receive the form input origUrl value
@@ -73,28 +139,12 @@ const handleSubmit = (e) => {
       if (data.error) {
         showError(true, data.error);
       } else {
-        let items = "";
+        let linkDetails = "";
         let clicksByDate = [];
         data.forEach((url) => {
-          let item = `<div class="result">`;
-
-          if (url.origUrl) {
-            item += `<p><span class="bold">Original URL</span>: <a href="${url.origUrl}" target="_blank" id="stats-origUrl">${url.origUrl}</a></p>`;
-          }
-          if (url.shortUrl) {
-            item += `<p><span class="bold">Short URL</span>: <a href="${url.shortUrl}" target="_blank" id="stats-shortUrl">${url.shortUrl}</a></p>`;
-          }
-          if (url.episodeName) {
-            item += `<p><span class="bold">Episode</span>: <span id="stats-episodeName">${url.episodeName}</span></p>`;
-          }
-
-          item += `<p><span class="bold">Clicks</span>: <span id="stats-clicks">${
-            url.clicks || 0
-          }</span></p>`;
-          item += `</div>`;
-          items += item;
-
-          if (url.urlStats) {
+          const linkDetail = constructLinkDetails(url);
+          linkDetails += linkDetail;
+          if (url.urlStats && url.urlStats.length) {
             url.urlStats.forEach((stat, i) => {
               const date = new Date(stat.accessDate);
               const month = date.getMonth() + 1; // Add 1 because getMonth() returns 0-indexed months
@@ -114,46 +164,17 @@ const handleSubmit = (e) => {
             });
           }
         });
-        clicksByDate = sortByDate(clicksByDate);
 
         if (canvasRef) {
           canvasRef.destroy();
         }
 
         if (clicksByDate && clicksByDate.length) {
-          canvasRef = new Chart(document.getElementById("stat-chart"), {
-            type: "line",
-            options: {
-              responsive: true,
-              scales: {
-                y: {
-                  min: 0,
-                  beginAtZero: true,
-                  grace: 1,
-                  ticks: {
-                    stepSize: 1,
-                  },
-                },
-              },
-              plugins: {
-                legend: {
-                  display: false,
-                },
-              },
-            },
-            data: {
-              labels: clicksByDate.map((row) => row.date),
-              datasets: [
-                {
-                  label: "Clicks by day",
-                  data: clicksByDate.map((row) => row.count),
-                },
-              ],
-            },
-          });
+          clicksByDate = sortByDate(clicksByDate);
+          constructStatsGraph(clicksByDate);
         }
 
-        document.getElementById("stat-results").innerHTML = items;
+        document.getElementById("stat-results").innerHTML = linkDetails;
         showError(false);
       }
     });

@@ -4,6 +4,14 @@ export function validateUrl(value) {
   );
 }
 
+export function validateEmail(email) {
+  // Define a regular expression to match email addresses
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Use the regular expression to test the email address
+  return emailRegex.test(email);
+}
+
 //validate that something is a link
 export function validateShortUrl(value) {
   return /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi.test(

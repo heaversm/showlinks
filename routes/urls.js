@@ -2,7 +2,7 @@ import path from "path";
 import express from "express";
 import { nanoid } from "nanoid";
 import Url from "../models/Url.js";
-import { validateUrl, toCamelCase } from "../utils/utils.js";
+import { validateUrl, validateEmail, toCamelCase } from "../utils/utils.js";
 import dotenv from "dotenv";
 dotenv.config({ path: "../config/.env" });
 
@@ -80,7 +80,6 @@ router.post("/short", async (req, res) => {
   else {
     res.status(400).json("no URLs found");
   }
-  
 });
 
 const getStatsByMethod = async (method, methodVal, errorMsg) => {
@@ -141,6 +140,29 @@ router.post("/stats", async (req, res) => {
     console.log(err);
     res.status(500).json("Server Error");
   }
+});
+
+router.post("/contact", async (req, res) => {
+  console.log(req.body);
+  const { name, email, podcast, feedback, proof } = req.body;
+
+  if (!feedback || !proof) {
+    return res.status(400).json({ error: "All fields are required." });
+  }
+  if (parseInt(proof) !== 6) {
+    return res.status(400).json({ error: "Invalid proof of humanity." });
+  }
+  if (email && !validateEmail(email)) {
+    return res.status(400).json({ error: "Invalid email address." });
+  }
+  if (podcast && !validateUrl(podcast)) {
+    return res.status(400).json({ error: "Invalid podcast URL." });
+  }
+
+  // TODO: Save the form data to a database or send an email
+
+  // Send a success response
+  res.json({ message: "Your information has been submitted successfully!" });
 });
 
 export default router;

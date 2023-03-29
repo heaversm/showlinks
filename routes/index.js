@@ -29,6 +29,13 @@ router.get("/stats", (req, res) => {
   res.sendFile("stats.html", { root: templates });
 });
 
+router.get("/contact", (req, res) => {
+  // res.sendFile(path.join(__dirname, "./client"));
+  //__dirname is not defined - not sure why...using this hack instead
+  //https://stackoverflow.com/questions/26079611/node-js-typeerror-path-must-be-absolute-or-specify-root-to-res-sendfile-failed
+  res.sendFile("contact.html", { root: templates });
+});
+
 router.get("/:urlId", async (req, res) => {
   //console.log("get id", req.params.urlId);
 

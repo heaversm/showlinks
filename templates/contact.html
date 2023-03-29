@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shownotes: Contact</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <main>
+    <h1>Show Notes</h1>
+    <section class="section-menu">
+      <nav>
+        <a href="/">Create</a>
+        <a class="active" href="/stats">Get Stats</a>
+        <a href="/contact">Contact</a>
+      </nav>
+    </section>
+    <section class="section-form">
+      <h2>Contact us:</h2>
+      
+      <form id="contactForm">
+        <!--Optional: name, email, podcast URL; text field for feedback, questions, suggestions, etc.,; some sort of humanity check (reCAPTCHA).-->
+        <div class="form-group">
+          <label for="name">Name:</label>
+          <input type="text" id="name" name="name">
+        </div>
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email">
+        </div>
+        <div class="form-group">
+          <label for="podcast">Podcast URL:</label>
+          <input type="url" id="podcast" name="podcast">
+        </div>
+        <div class="form-group" id="form-group-feedback">
+          <label for="feedback">Feedback:</label><br/>
+          <textarea id="feedback" name="feedback" required maxlength="1000"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="proof">What is 3 X 2?<span</label>
+          <input type="text" id="proof" name="proof" required>
+        </div>
+        <div class="form-group">
+          <button type="submit">Submit</button>
+        </div>
+        <div id="error" class="error"></div>
+        <div id="success" class="success"></div>
+      </form>
+    </section>
+  </main>
+  <script src="scripts/contact.js"></script>
+</body>
+</html>
