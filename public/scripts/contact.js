@@ -20,7 +20,6 @@ const handleSubmit = () => {
   clearMessages();
   const form = document.getElementById("contactForm");
   const formData = new URLSearchParams(new FormData(form));
-  console.log(formData);
 
   // Post the form data to the API endpoint
   fetch("api/contact", {
@@ -33,7 +32,6 @@ const handleSubmit = () => {
         console.log(data.error);
         document.getElementById("error").innerHTML = data.error;
       } else {
-        console.log("Success:", data);
         document.getElementById("success").innerHTML = data.message;
       }
     })

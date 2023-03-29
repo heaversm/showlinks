@@ -3,11 +3,40 @@ import express from "express";
 import { nanoid } from "nanoid";
 import Url from "../models/Url.js";
 import { validateUrl, validateEmail, toCamelCase } from "../utils/utils.js";
-import dotenv from "dotenv";
-dotenv.config({ path: "../config/.env" });
+import Mailgun from "mailgun.js";
+import formData from "form-data";
 
 const router = express.Router();
 const templates = path.join(process.cwd(), "templates");
+
+const mailgun = new Mailgun(formData);
+const mg = mailgun.client({
+  username: "api",
+  key: process.env.MAILGUN_KEY,
+});
+
+const sendEmail = async (contactFormData) => {
+  const { name, email, podcast, feedback } = contactFormData;
+  const sandbox = process.env.MAILGUN_SANDBOX;
+  const recipients = process.env.MAILGUN_RECIPIENTS;
+  return new Promise((resolve, reject) => {
+    mg.messages
+      .create(sandbox, {
+        from: `Mailgun Sandbox <postmaster@${sandbox}>`,
+        to: recipients,
+        subject: "Show Notes Contact Submission",
+        text: `Name: ${name}\r\nEmail: ${email}\r\nPodcast: ${podcast}\r\nFeedback: ${feedback}`,
+      })
+      .then((msg) => {
+        console.log(msg);
+        return resolve(msg);
+      }) // logs response data
+      .catch((err) => {
+        console.log(err);
+        return reject(err);
+      }); // logs any error`;
+  });
+};
 
 //ID generator
 router.get("/generateUserId", async (req, res) => {
@@ -143,8 +172,8 @@ router.post("/stats", async (req, res) => {
 });
 
 router.post("/contact", async (req, res) => {
-  console.log(req.body);
   const { name, email, podcast, feedback, proof } = req.body;
+  // console.log(req.body);
 
   if (!feedback || !proof) {
     return res.status(400).json({ error: "All fields are required." });
@@ -158,9 +187,8 @@ router.post("/contact", async (req, res) => {
   if (podcast && !validateUrl(podcast)) {
     return res.status(400).json({ error: "Invalid podcast URL." });
   }
-
-  // TODO: Save the form data to a database or send an email
-
+  const emailResponse = await sendEmail(req.body);
+  console.log(emailResponse);
   // Send a success response
   res.json({ message: "Your information has been submitted successfully!" });
 });
