@@ -20,6 +20,21 @@
     </section>
     <section class="section-form">
       <h2>Transcribe Podcast</h2>
+      <form id="transcribeForm" action="/api/transcribe" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="file">Audio File:</label>
+          <input type="file" id="file" name="file" accept=".wav, .mp3" required>
+        </div>
+        <div class="form-group">
+          <button type="submit">Submit</button>
+        </div>
+        <div class="form-group" id="download-container"></div>
+        <div id="error" class="error"></div>
+        <div id="success" class="success"></div>
+      </form>
+    </section>
+    <section class="section-output">
+      <div class="output-group" id="transcript-download-group"></div>
     </section>
     
   </main>

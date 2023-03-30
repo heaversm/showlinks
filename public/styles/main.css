@@ -92,6 +92,17 @@ textarea {
   border-bottom: 1px solid #eee;
 }
 
+.download-button {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: .83em;
+}
+
 /* CONTACT */
 
 #contactForm .form-group {

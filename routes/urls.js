@@ -7,6 +7,7 @@ import Mailgun from "mailgun.js";
 import formData from "form-data";
 import { Configuration, OpenAIApi } from "openai";
 import * as fs from "fs";
+import multer from "multer";
 
 const openAiConfiguration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -20,6 +21,8 @@ const mg = mailgun.client({
   username: "api",
   key: process.env.MAILGUN_KEY,
 });
+
+const upload = multer({ dest: "uploads/" });
 
 const sendEmail = async (contactFormData) => {
   const { name, email, podcast, feedback } = contactFormData;
@@ -199,31 +202,40 @@ router.post("/contact", async (req, res) => {
   res.json({ message: "Your information has been submitted successfully!" });
 });
 
-router.post("/transcribe", async (req, res) => {
-  const podcastFile = path.join(
-    process.cwd(),
-    "public",
-    "audio",
-    "vergecast-excerpt.mp3"
-  );
-  // console.log(podcastFile);
+// router.post("/transcribe", async (req, res) => {
+router.post("/transcribe", upload.single("file"), async (req, res, next) => {
+  // console.log(req.file, req.body);
+  const { originalname, mimetype, filename } = req.file;
+  const fileExt = originalname.slice(originalname.lastIndexOf("."));
+  const newFileName = filename + fileExt;
+  const origPodcastFile = path.join(process.cwd(), "uploads", filename);
+  const podcastFile = path.join(process.cwd(), "uploads", newFileName);
 
-  await openai
-    .createTranscription(
-      fs.createReadStream(podcastFile),
-      "whisper-1",
-      "", //prompt
-      "srt" //response format: json, vtt,srt, or text
-    )
-    .then(async (transcriptResponse) => {
-      // console.log(resp.data);
-      const transcript = transcriptResponse.data;
-      res.json({ transcript: transcript });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json("Server Error");
-    });
+  fs.rename(origPodcastFile, podcastFile, async () => {
+    await openai
+      .createTranscription(
+        fs.createReadStream(podcastFile),
+        "whisper-1",
+        "", //prompt
+        "srt" //response format: json, vtt,srt, or text
+      )
+      .then(async (transcriptResponse) => {
+        const transcript = transcriptResponse.data;
+        // console.log(transcript);
+        fs.unlink(podcastFile, (err) => {
+          if (err) {
+            console.error(err);
+            res.status(500).send("Error deleting file");
+            return;
+          }
+          res.json({ transcript: transcript });
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        res.status(500).json("Server Error");
+      });
+  });
 });
 
 export default router;
