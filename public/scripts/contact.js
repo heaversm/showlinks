@@ -16,6 +16,10 @@ const clearMessages = () => {
   document.getElementById("success").innerHTML = "";
 };
 
+const clearFormFields = () => {
+  document.getElementById("contactForm").reset();
+};
+
 const handleSubmit = () => {
   clearMessages();
   const form = document.getElementById("contactForm");
@@ -33,6 +37,7 @@ const handleSubmit = () => {
         document.getElementById("error").innerHTML = data.error;
       } else {
         document.getElementById("success").innerHTML = data.message;
+        clearFormFields();
       }
     })
     .catch((error) => {
