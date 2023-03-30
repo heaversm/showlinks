@@ -5,9 +5,15 @@ import Url from "../models/Url.js";
 import { validateUrl, validateEmail, toCamelCase } from "../utils/utils.js";
 import Mailgun from "mailgun.js";
 import formData from "form-data";
+import { Configuration, OpenAIApi } from "openai";
+import * as fs from "fs";
+
+const openAiConfiguration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(openAiConfiguration);
 
 const router = express.Router();
-const templates = path.join(process.cwd(), "templates");
 
 const mailgun = new Mailgun(formData);
 const mg = mailgun.client({
@@ -191,6 +197,33 @@ router.post("/contact", async (req, res) => {
   console.log(emailResponse);
   // Send a success response
   res.json({ message: "Your information has been submitted successfully!" });
+});
+
+router.post("/transcribe", async (req, res) => {
+  const podcastFile = path.join(
+    process.cwd(),
+    "public",
+    "audio",
+    "vergecast-excerpt.mp3"
+  );
+  // console.log(podcastFile);
+
+  await openai
+    .createTranscription(
+      fs.createReadStream(podcastFile),
+      "whisper-1",
+      "", //prompt
+      "srt" //response format: json, vtt,srt, or text
+    )
+    .then(async (transcriptResponse) => {
+      // console.log(resp.data);
+      const transcript = transcriptResponse.data;
+      res.json({ transcript: transcript });
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).json("Server Error");
+    });
 });
 
 export default router;
