@@ -22,8 +22,25 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(publicDir));
 app.use(cookieParser("cookie-parser-secret"));
-app.use(session({ secret: process.env.SESSION_SECRET }));
-app.use(csurf(process.env.CSRF_SECRET));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(
+  csurf(
+    process.env.CSRF_SECRET,
+    ["POST"],
+    [
+      "/api/short/",
+      "/api/stats/",
+      "/api/transcribe/",
+      "https://api.openai.com/v1/audio/transcriptions",
+    ]
+  )
+);
 
 app.use('/', indexRouter);
 app.use('/api', urlsRouter);

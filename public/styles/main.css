@@ -50,6 +50,10 @@ textarea {
   border: 1px solid #ccc;
 }
 
+select {
+  padding: 5px 10px;
+}
+
 #editor-container {
   height: 375px;
 }

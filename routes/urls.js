@@ -212,22 +212,32 @@ router.post("/contact", async (req, res) => {
 
 // router.post("/transcribe", async (req, res) => {
 router.post("/transcribe", upload.single("file"), async (req, res, next) => {
-  // console.log(req.file, req.body);
   const { originalname, mimetype, filename } = req.file;
   const fileExt = originalname.slice(originalname.lastIndexOf("."));
   const newFileName = filename + fileExt;
   const origPodcastFile = path.join(process.cwd(), "uploads", filename);
   const podcastFile = path.join(process.cwd(), "uploads", newFileName);
+  //const origFormat = req.body.format;
+  // let format;
+  // if (!origFormat || req.body.format == "text") {
+  //   //text doesn't give us the timestamps so we'll have to convert the srt to timestamped text
+  //   format = "srt";
+  // } else {
+  //   format = origFormat;
+  // }
+  const format = req.body.format;
 
   fs.rename(origPodcastFile, podcastFile, async () => {
+    console.log("transcribing with openai");
     await openai
       .createTranscription(
         fs.createReadStream(podcastFile),
         "whisper-1",
         "", //prompt
-        "srt" //response format: json, vtt,srt, or text
+        format //response format: json, vtt,srt, or text
       )
       .then(async (transcriptResponse) => {
+        console.log("transcribed");
         const transcript = transcriptResponse.data;
         // console.log(transcript);
         fs.unlink(podcastFile, (err) => {

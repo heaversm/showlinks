@@ -26,6 +26,14 @@
           <input type="file" id="file" name="file" accept=".wav, .mp3" required>
         </div>
         <div class="form-group">
+          <label for="format">Transcript Format:</label>
+          <select name="format" id="format">
+            <option value="text">text</option>
+            <option value="vtt">vtt</option>
+            <option selected value="srt">srt</option>
+          </select>
+        </div>
+        <div class="form-group">
           <button type="submit">Submit</button>
         </div>
         <div class="form-group" id="download-container"></div>

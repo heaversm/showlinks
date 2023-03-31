@@ -50,6 +50,10 @@ const transcribeAudio = () => {
 
   const formData = new FormData();
   formData.append("file", file);
+  const transcriptFormat = document.getElementById("format").value;
+  const transcriptExt = transcriptFormat === "text" ? "txt" : transcriptFormat;
+  formData.append("format", transcriptFormat);
+
   const options = {
     method: "POST",
     // headers: {
@@ -61,14 +65,14 @@ const transcribeAudio = () => {
   fetch(`/api/transcribe/`, options)
     .then((res) => res.json())
     .then((data) => {
-      //console.log(data); // Handle the response data as needed
+      console.log(data); // Handle the response data as needed
       const file = new Blob([data.transcript], { type: "text/html" });
       // Others
       const a = document.createElement("a");
       blobUrl = window.URL.createObjectURL(file);
       a.href = blobUrl;
       a.className = "download-button";
-      a.download = "transcript.srt";
+      a.download = `transcript.${transcriptExt}`;
       a.innerText = "Download Transcript";
       //a.click();
       a.addEventListener("click", handleFileDownloaded);
