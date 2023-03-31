@@ -24,8 +24,6 @@ const checkForUserId = () => {
   const userId = getUserIdFromLocalStorage();
   if (userId && userId.length) {
     document.getElementById("userId").value = `${userId}`;
-  } else {
-    console.log("no user id");
   }
 };
 
@@ -156,10 +154,39 @@ const handleSubmit = (e) => {
               );
               if (index === -1) {
                 // If this date hasn't been added yet, create a new object with count = 1
-                clicksByDate.push({ date: formattedDate, count: 1 });
+                clicksByDate.push({
+                  date: formattedDate,
+                  count: 1,
+                  browsers: [{ name: stat.browser, count: 1 }],
+                  operatingSystems: [{ name: stat.os, count: 1 }],
+                  devices: [{ name: stat.device, count: 1 }],
+                });
               } else {
                 // If this date already exists in clicksByDate, increment its count
-                clicksByDate[index].count++;
+                const item = clicksByDate[index];
+                item.count++;
+                const browser = item.browsers.find(
+                  (x) => x.name === stat.browser
+                );
+                if (!browser) {
+                  item.browsers.push({ name: stat.browser, count: 1 });
+                } else {
+                  browser.count += 1;
+                }
+                const os = item.operatingSystems.find(
+                  (x) => x.name === stat.os
+                );
+                if (!os) {
+                  item.operatingSystems.push({ name: stat.os, count: 1 });
+                } else {
+                  os.count += 1;
+                }
+                const device = item.devices.find((x) => x.name === stat.device);
+                if (!device) {
+                  item.devices.push({ name: stat.device, count: 1 });
+                } else {
+                  device.count += 1;
+                }
               }
             });
           }
@@ -170,6 +197,7 @@ const handleSubmit = (e) => {
         }
 
         if (clicksByDate && clicksByDate.length) {
+          console.log(clicksByDate);
           clicksByDate = sortByDate(clicksByDate);
           constructStatsGraph(clicksByDate);
         }

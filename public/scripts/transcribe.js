@@ -65,7 +65,6 @@ const transcribeAudio = () => {
   fetch(`/api/transcribe/`, options)
     .then((res) => res.json())
     .then((data) => {
-      console.log(data); // Handle the response data as needed
       const file = new Blob([data.transcript], { type: "text/html" });
       // Others
       const a = document.createElement("a");

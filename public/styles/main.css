@@ -67,6 +67,10 @@ select {
   font-weight: bold;
 }
 
+.success {
+  color: #007bff;
+}
+
 
 .hidden {
   display: none;

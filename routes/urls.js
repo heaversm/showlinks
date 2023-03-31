@@ -37,7 +37,10 @@ const srtToTimestampedText = (srtString) => {
 
     // Format the timestamp as desired
     const [start, end] = timestamp.split(" --> ");
-    const formattedTimestamp = `[${start.replace(",", " --> ")}]`;
+    const formattedStart = start ? start.replace(/,\d{3}/, "") : "";
+
+    const formattedEnd = end ? end.replace(/,\d{3}/, "") : "";
+    const formattedTimestamp = `[${formattedStart} --> ${formattedEnd}]`;
 
     // Join the formatted timestamp and text into a single string
     const formattedSubtitle = `${formattedTimestamp}\n${text}\n`;
@@ -45,9 +48,6 @@ const srtToTimestampedText = (srtString) => {
     // Append the formatted subtitle to the output string
     outputString += formattedSubtitle;
   });
-
-  // Output the final formatted string
-  console.log(outputString);
   return outputString;
 };
 
@@ -255,7 +255,6 @@ router.post("/transcribe", upload.single("file"), async (req, res, next) => {
   //const format = req.body.format;
 
   fs.rename(origPodcastFile, podcastFile, async () => {
-    console.log("transcribing with openai");
     await openai
       .createTranscription(
         fs.createReadStream(podcastFile),
