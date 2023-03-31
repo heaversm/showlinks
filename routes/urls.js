@@ -37,7 +37,7 @@ const sendEmail = async (contactFormData) => {
         text: `Name: ${name}\r\nEmail: ${email}\r\nPodcast: ${podcast}\r\nFeedback: ${feedback}`,
       })
       .then((msg) => {
-        console.log(msg);
+        // console.log(msg);
         return resolve(msg);
       }) // logs response data
       .catch((err) => {
@@ -55,6 +55,12 @@ router.get("/generateUserId", async (req, res) => {
   } else {
     res.json({ error: "Error generating user ID" });
   }
+});
+
+router.get("/csrf", (req, res) => {
+  res.json({
+    token: req.session.csrf,
+  });
 });
 
 // Short URL Generator
@@ -181,8 +187,11 @@ router.post("/stats", async (req, res) => {
 });
 
 router.post("/contact", async (req, res) => {
-  const { name, email, podcast, feedback, proof } = req.body;
-  // console.log(req.body);
+  const { name, email, podcast, feedback, proof, _csrf } = req.body;
+
+  if (!_csrf || _csrf != req.session.csrf) {
+    return res.status(400).json({ error: "Invalid CSRF." });
+  }
 
   if (!feedback || !proof) {
     return res.status(400).json({ error: "All fields are required." });
@@ -197,7 +206,6 @@ router.post("/contact", async (req, res) => {
     return res.status(400).json({ error: "Invalid podcast URL." });
   }
   const emailResponse = await sendEmail(req.body);
-  console.log(emailResponse);
   // Send a success response
   res.json({ message: "Your information has been submitted successfully!" });
 });

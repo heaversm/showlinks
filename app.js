@@ -2,6 +2,10 @@ import express from 'express';
 import path from "path";
 import connectDB from "./config/db.js";
 import dotenv from "dotenv";
+import csurf from "tiny-csrf";
+import session from "express-session";
+import cookieParser from "cookie-parser";
+
 dotenv.config({ path: "./config/.env" });
 
 const app = express();
@@ -17,6 +21,9 @@ const publicDir = path.join(process.cwd(), "public");
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(publicDir));
+app.use(cookieParser("cookie-parser-secret"));
+app.use(session({ secret: process.env.SESSION_SECRET }));
+app.use(csurf(process.env.CSRF_SECRET));
 
 app.use('/', indexRouter);
 app.use('/api', urlsRouter);
