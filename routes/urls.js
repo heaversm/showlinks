@@ -24,6 +24,33 @@ const mg = mailgun.client({
 
 const upload = multer({ dest: "uploads/" });
 
+const srtToTimestampedText = (srtString) => {
+  // Split the string into an array of subtitle blocks
+  const subtitleBlocks = srtString.split("\n\n");
+
+  // Loop through each subtitle block and format the timestamp and text
+  let outputString = "";
+  subtitleBlocks.forEach((subtitleBlock) => {
+    // Extract the timestamp and text
+    const [step, timestamp, ...textLines] = subtitleBlock.split("\n");
+    const text = textLines.join("\n");
+
+    // Format the timestamp as desired
+    const [start, end] = timestamp.split(" --> ");
+    const formattedTimestamp = `[${start.replace(",", " --> ")}]`;
+
+    // Join the formatted timestamp and text into a single string
+    const formattedSubtitle = `${formattedTimestamp}\n${text}\n`;
+
+    // Append the formatted subtitle to the output string
+    outputString += formattedSubtitle;
+  });
+
+  // Output the final formatted string
+  console.log(outputString);
+  return outputString;
+};
+
 const sendEmail = async (contactFormData) => {
   const { name, email, podcast, feedback } = contactFormData;
   const sandbox = process.env.MAILGUN_SANDBOX;
@@ -217,15 +244,15 @@ router.post("/transcribe", upload.single("file"), async (req, res, next) => {
   const newFileName = filename + fileExt;
   const origPodcastFile = path.join(process.cwd(), "uploads", filename);
   const podcastFile = path.join(process.cwd(), "uploads", newFileName);
-  //const origFormat = req.body.format;
-  // let format;
-  // if (!origFormat || req.body.format == "text") {
-  //   //text doesn't give us the timestamps so we'll have to convert the srt to timestamped text
-  //   format = "srt";
-  // } else {
-  //   format = origFormat;
-  // }
-  const format = req.body.format;
+  const origFormat = req.body.format;
+  let format;
+  if (!origFormat || req.body.format == "text") {
+    //text doesn't give us the timestamps so we'll have to convert the srt to timestamped text
+    format = "srt";
+  } else {
+    format = origFormat;
+  }
+  //const format = req.body.format;
 
   fs.rename(origPodcastFile, podcastFile, async () => {
     console.log("transcribing with openai");
@@ -238,8 +265,13 @@ router.post("/transcribe", upload.single("file"), async (req, res, next) => {
       )
       .then(async (transcriptResponse) => {
         console.log("transcribed");
-        const transcript = transcriptResponse.data;
-        // console.log(transcript);
+        let transcript = transcriptResponse.data;
+
+        if (origFormat == "text") {
+          //convert srt to timestamped text
+          transcript = srtToTimestampedText(transcript);
+        }
+
         fs.unlink(podcastFile, (err) => {
           if (err) {
             console.error(err);
