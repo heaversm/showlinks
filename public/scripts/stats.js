@@ -45,6 +45,7 @@ const sortByDate = (dateArray) => {
 };
 
 const constructLinkDetails = (url) => {
+  // console.log(url);
   let stat = `
     <div class="result">
       ${
@@ -96,14 +97,51 @@ const constructStatsGraph = (clicksByDate) => {
         legend: {
           display: false,
         },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              // console.log(context);
+              return `Clicks: ${context.formattedValue}`;
+            },
+            footer: function (context) {
+              // console.log(context);
+              const { browsers, devices, operatingSystems } = context[0].raw;
+              let footer = "\r\n";
+              if (browsers?.length) {
+                browsers.forEach((browser) => {
+                  footer += `${browser.name}: ${browser.count}\r\n`;
+                });
+                footer += `\r\n`;
+              }
+              if (devices?.length) {
+                devices.forEach((device) => {
+                  footer += `${device.name}: ${device.count}\r\n`;
+                });
+                footer += `\r\n`;
+              }
+              if (operatingSystems?.length) {
+                operatingSystems.forEach((os) => {
+                  footer += `${os.name}: ${os.count}\r\n`;
+                });
+              }
+
+              return footer;
+            },
+          },
+        },
+      },
+      parsing: {
+        xAxisKey: "date",
+        yAxisKey: "count",
       },
     },
     data: {
       labels: clicksByDate.map((row) => row.date),
       datasets: [
         {
-          label: "Clicks by day",
-          data: clicksByDate.map((row) => row.count),
+          // label: "Clicks by day",
+          // data: clicksByDate.map((row) => row.count),
+          data: clicksByDate,
         },
       ],
     },
@@ -197,7 +235,6 @@ const handleSubmit = (e) => {
         }
 
         if (clicksByDate && clicksByDate.length) {
-          console.log(clicksByDate);
           clicksByDate = sortByDate(clicksByDate);
           constructStatsGraph(clicksByDate);
         }
