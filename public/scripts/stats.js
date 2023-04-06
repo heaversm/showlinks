@@ -35,6 +35,8 @@ const getUserIdFromLocalStorage = () => {
   }
 };
 
+//Brutal...https://codepen.io/heaversm/pen/eYLqbpo?editors=0011
+
 const sortByDate = (dateArray) => {
   dateArray.sort((a, b) => {
     const dateA = new Date("2022/" + a.date).getTime();
@@ -42,6 +44,29 @@ const sortByDate = (dateArray) => {
     return dateA - dateB;
   });
   return dateArray;
+};
+
+const constructUrlFooter = (data) => {
+  let footer = "";
+  const { browsers, devices, operatingSystems } = data;
+  if (browsers?.length) {
+    browsers.forEach((browser) => {
+      footer += `${browser.name}: ${browser.count}\r\n`;
+    });
+    footer += `\r\n`;
+  }
+  if (devices?.length) {
+    devices.forEach((device) => {
+      footer += `${device.name}: ${device.count}\r\n`;
+    });
+    footer += `\r\n`;
+  }
+  if (operatingSystems?.length) {
+    operatingSystems.forEach((os) => {
+      footer += `${os.name}: ${os.count}\r\n`;
+    });
+  }
+  return footer;
 };
 
 const constructLinkDetails = (url) => {
@@ -105,26 +130,11 @@ const constructStatsGraph = (clicksByDate) => {
             },
             footer: function (context) {
               // console.log(context);
-              const { browsers, devices, operatingSystems } = context[0].raw;
-              let footer = "\r\n";
-              if (browsers?.length) {
-                browsers.forEach((browser) => {
-                  footer += `${browser.name}: ${browser.count}\r\n`;
-                });
-                footer += `\r\n`;
+              let footer = "";
+              if (context?.length) {
+                footer = "\r\n";
+                footer = constructUrlFooter(context[0].raw);
               }
-              if (devices?.length) {
-                devices.forEach((device) => {
-                  footer += `${device.name}: ${device.count}\r\n`;
-                });
-                footer += `\r\n`;
-              }
-              if (operatingSystems?.length) {
-                operatingSystems.forEach((os) => {
-                  footer += `${os.name}: ${os.count}\r\n`;
-                });
-              }
-
               return footer;
             },
           },
@@ -139,13 +149,161 @@ const constructStatsGraph = (clicksByDate) => {
       labels: clicksByDate.map((row) => row.date),
       datasets: [
         {
-          // label: "Clicks by day",
-          // data: clicksByDate.map((row) => row.count),
           data: clicksByDate,
         },
       ],
     },
   });
+};
+
+const constructLinksGraph = (clicksByLink) => {
+  // console.log(clicksByLink);
+  const chartData = [];
+  clicksByLink.forEach((link) => {
+    chartData.push({ data: link });
+  });
+  console.log(chartData);
+
+  canvasRef = new Chart(document.getElementById("stat-chart"), {
+    type: "line",
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          min: 0,
+          beginAtZero: true,
+          grace: 1,
+          ticks: {
+            stepSize: 1,
+          },
+        },
+      },
+      plugins: {
+        legend: {
+          display: false,
+        },
+      },
+      parsing: {
+        xAxisKey: "clicksByDate.date",
+        yAxisKey: "clicksByDate.count",
+      },
+    },
+    data: {
+      labels: chartData[0].data.clicksByDate.map((row) => row.date),
+      datasets: chartData,
+    },
+  });
+};
+
+constructFormattedDate = (accessDate) => {
+  const date = new Date(accessDate);
+  const month = date.getMonth() + 1; // Add 1 because getMonth() returns 0-indexed months
+  const day = date.getDate();
+  const formattedDate = `${month}/${day}`;
+  return formattedDate;
+};
+
+constructClicksByDate = (data) => {
+  let linkDetails = "";
+  let clicksByDate = [];
+  data.forEach((url) => {
+    const linkDetail = constructLinkDetails(url);
+    linkDetails += linkDetail;
+    if (url.urlStats && url.urlStats.length) {
+      url.urlStats.forEach((stat, i) => {
+        const formattedDate = constructFormattedDate(stat.accessDate);
+
+        const index = clicksByDate.findIndex(
+          (item) => item.date === formattedDate
+        );
+        if (index === -1) {
+          // If this date hasn't been added yet, create a new object with count = 1
+          clicksByDate.push({
+            date: formattedDate,
+            count: 1,
+            browsers: [{ name: stat.browser, count: 1 }],
+            operatingSystems: [{ name: stat.os, count: 1 }],
+            devices: [{ name: stat.device, count: 1 }],
+          });
+        } else {
+          // If this date already exists in clicksByDate, increment its count
+          const item = clicksByDate[index];
+          item.count++;
+          const browser = item.browsers.find((x) => x.name === stat.browser);
+          if (!browser) {
+            item.browsers.push({ name: stat.browser, count: 1 });
+          } else {
+            browser.count += 1;
+          }
+          const os = item.operatingSystems.find((x) => x.name === stat.os);
+          if (!os) {
+            item.operatingSystems.push({ name: stat.os, count: 1 });
+          } else {
+            os.count += 1;
+          }
+          const device = item.devices.find((x) => x.name === stat.device);
+          if (!device) {
+            item.devices.push({ name: stat.device, count: 1 });
+          } else {
+            device.count += 1;
+          }
+        }
+      });
+    }
+  });
+  return { linkDetails, clicksByDate };
+};
+
+constructClicksByLink = (data) => {
+  let linkDetails = "";
+
+  data.forEach((url) => {
+    const linkDetail = constructLinkDetails(url);
+    linkDetails += linkDetail;
+    if (url.urlStats && url.urlStats.length) {
+      url.clicksByDate = [];
+      url.urlStats.forEach((stat, i) => {
+        const formattedDate = constructFormattedDate(stat.accessDate);
+
+        const index = url.clicksByDate.findIndex(
+          (item) => item.date === formattedDate
+        );
+        if (index === -1) {
+          // If this date hasn't been added yet, create a new object with count = 1
+          url.clicksByDate.push({
+            date: formattedDate,
+            count: 1,
+            browsers: [{ name: stat.browser, count: 1 }],
+            operatingSystems: [{ name: stat.os, count: 1 }],
+            devices: [{ name: stat.device, count: 1 }],
+          });
+        } else {
+          // If this date already exists in clicksByDate, increment its count
+          const item = url.clicksByDate[index];
+          item.count++;
+          const browser = item.browsers.find((x) => x.name === stat.browser);
+          if (!browser) {
+            item.browsers.push({ name: stat.browser, count: 1 });
+          } else {
+            browser.count += 1;
+          }
+          const os = item.operatingSystems.find((x) => x.name === stat.os);
+          if (!os) {
+            item.operatingSystems.push({ name: stat.os, count: 1 });
+          } else {
+            os.count += 1;
+          }
+          const device = item.devices.find((x) => x.name === stat.device);
+          if (!device) {
+            item.devices.push({ name: stat.device, count: 1 });
+          } else {
+            device.count += 1;
+          }
+        }
+      });
+    }
+  });
+  return { linkDetails, data };
 };
 
 const handleSubmit = (e) => {
@@ -154,7 +312,11 @@ const handleSubmit = (e) => {
   const userIdVal = document.getElementById("userId").value;
   const episodeIdVal = document.getElementById("episodeId").value;
   const shortUrlVal = document.getElementById("shortUrl").value;
-
+  let statsMethod = userIdVal
+    ? "userId"
+    : episodeIdVal
+    ? "episodeId"
+    : "shortUrl";
   let postBody = userIdVal
     ? `{"userId": "${userIdVal}"}`
     : episodeIdVal
@@ -175,72 +337,34 @@ const handleSubmit = (e) => {
       if (data.error) {
         showError(true, data.error);
       } else {
-        let linkDetails = "";
-        let clicksByDate = [];
-        data.forEach((url) => {
-          const linkDetail = constructLinkDetails(url);
-          linkDetails += linkDetail;
-          if (url.urlStats && url.urlStats.length) {
-            url.urlStats.forEach((stat, i) => {
-              const date = new Date(stat.accessDate);
-              const month = date.getMonth() + 1; // Add 1 because getMonth() returns 0-indexed months
-              const day = date.getDate();
-              const formattedDate = `${month}/${day}`;
+        console.log(data);
 
-              const index = clicksByDate.findIndex(
-                (item) => item.date === formattedDate
-              );
-              if (index === -1) {
-                // If this date hasn't been added yet, create a new object with count = 1
-                clicksByDate.push({
-                  date: formattedDate,
-                  count: 1,
-                  browsers: [{ name: stat.browser, count: 1 }],
-                  operatingSystems: [{ name: stat.os, count: 1 }],
-                  devices: [{ name: stat.device, count: 1 }],
-                });
-              } else {
-                // If this date already exists in clicksByDate, increment its count
-                const item = clicksByDate[index];
-                item.count++;
-                const browser = item.browsers.find(
-                  (x) => x.name === stat.browser
-                );
-                if (!browser) {
-                  item.browsers.push({ name: stat.browser, count: 1 });
-                } else {
-                  browser.count += 1;
-                }
-                const os = item.operatingSystems.find(
-                  (x) => x.name === stat.os
-                );
-                if (!os) {
-                  item.operatingSystems.push({ name: stat.os, count: 1 });
-                } else {
-                  os.count += 1;
-                }
-                const device = item.devices.find((x) => x.name === stat.device);
-                if (!device) {
-                  item.devices.push({ name: stat.device, count: 1 });
-                } else {
-                  device.count += 1;
-                }
-              }
-            });
+        if (statsMethod === "episodeId") {
+          let linkDetails = "";
+          let clicksByLink = [];
+          const clicksByLinkResponse = constructClicksByLink(data);
+          linkDetails = clicksByLinkResponse.linkDetails;
+          clicksByLink = clicksByLinkResponse.data;
+          document.getElementById("stat-results").innerHTML = linkDetails;
+          showError(false);
+          constructLinksGraph(clicksByLink);
+        } else {
+          let linkDetails = "";
+          let clicksByDate = [];
+          const clicksByDateResponse = constructClicksByDate(data);
+          linkDetails = clicksByDateResponse.linkDetails;
+          clicksByDate = clicksByDateResponse.clicksByDate;
+          if (canvasRef) {
+            canvasRef.destroy();
           }
-        });
 
-        if (canvasRef) {
-          canvasRef.destroy();
+          if (clicksByDate && clicksByDate.length) {
+            clicksByDate = sortByDate(clicksByDate);
+            constructStatsGraph(clicksByDate);
+          }
+          document.getElementById("stat-results").innerHTML = linkDetails;
+          showError(false);
         }
-
-        if (clicksByDate && clicksByDate.length) {
-          clicksByDate = sortByDate(clicksByDate);
-          constructStatsGraph(clicksByDate);
-        }
-
-        document.getElementById("stat-results").innerHTML = linkDetails;
-        showError(false);
       }
     });
 };
