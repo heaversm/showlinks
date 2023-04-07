@@ -48,7 +48,7 @@ const sortByDate = (dateArray) => {
 
 const constructUrlFooter = (data) => {
   let footer = "";
-  const { browsers, devices, operatingSystems } = data;
+  const { browsers, devices, operatingSystems, hosts } = data;
   if (browsers?.length) {
     browsers.forEach((browser) => {
       footer += `${browser.name}: ${browser.count}\r\n`;
@@ -64,6 +64,12 @@ const constructUrlFooter = (data) => {
   if (operatingSystems?.length) {
     operatingSystems.forEach((os) => {
       footer += `${os.name}: ${os.count}\r\n`;
+    });
+    footer += `\r\n`;
+  }
+  if (hosts?.length) {
+    hosts.forEach((host) => {
+      footer += `${host.name}: ${host.count}\r\n`;
     });
   }
   return footer;
@@ -245,18 +251,21 @@ constructClicksByDate = (data) => {
     if (url.urlStats && url.urlStats.length) {
       url.urlStats.forEach((stat, i) => {
         const formattedDate = constructFormattedDate(stat.accessDate);
+        const statHost = stat.host || "Unknown";
 
         const index = clicksByDate.findIndex(
           (item) => item.date === formattedDate
         );
         if (index === -1) {
           // If this date hasn't been added yet, create a new object with count = 1
+
           clicksByDate.push({
             date: formattedDate,
             count: 1,
             browsers: [{ name: stat.browser, count: 1 }],
             operatingSystems: [{ name: stat.os, count: 1 }],
             devices: [{ name: stat.device, count: 1 }],
+            hosts: [{ name: statHost, count: 1 }],
           });
         } else {
           // If this date already exists in clicksByDate, increment its count
@@ -279,6 +288,12 @@ constructClicksByDate = (data) => {
             item.devices.push({ name: stat.device, count: 1 });
           } else {
             device.count += 1;
+          }
+          const host = item.hosts.find((x) => x.name === statHost);
+          if (!host) {
+            item.hosts.push({ name: statHost, count: 1 });
+          } else {
+            host.count += 1;
           }
         }
       });
@@ -311,6 +326,7 @@ constructClicksByLink = (data) => {
             browsers: [{ name: stat.browser, count: 1 }],
             operatingSystems: [{ name: stat.os, count: 1 }],
             devices: [{ name: stat.device, count: 1 }],
+            hosts: [{ name: stat.host, count: 1 }],
           });
         } else {
           // If this date already exists in clicksByDate, increment its count
@@ -333,6 +349,13 @@ constructClicksByLink = (data) => {
             item.devices.push({ name: stat.device, count: 1 });
           } else {
             device.count += 1;
+          }
+
+          const host = item.hosts.find((x) => x.name === stat.host);
+          if (!host) {
+            item.hosts.push({ name: stat.host, count: 1 });
+          } else {
+            host.count += 1;
           }
         }
       });

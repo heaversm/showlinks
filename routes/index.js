@@ -46,6 +46,7 @@ router.get("/:urlId", async (req, res) => {
       const browserMatch = userAgent.match(browserRegex);
       const osMatch = userAgent.match(osRegex);
       const deviceMatch = userAgent.match(deviceRegex);
+      const host = req.get("host") || "";
 
       const browser = browserMatch ? browserMatch[1] : "";
       const os = osMatch ? osMatch[1] : "";
@@ -61,6 +62,7 @@ router.get("/:urlId", async (req, res) => {
         os: os,
         device: device,
         accessDate: new Date(),
+        host: host,
       });
 
       await stat.save();

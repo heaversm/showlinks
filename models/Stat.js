@@ -25,6 +25,11 @@ const StatSchema = new mongoose.Schema({
     required: false,
     default: "",
   },
+  host: {
+    type: String,
+    required: false,
+    default: "",
+  },
 });
 
 export default mongoose.model("Stat", StatSchema);
