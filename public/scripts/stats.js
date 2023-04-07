@@ -157,12 +157,54 @@ const constructStatsGraph = (clicksByDate) => {
 };
 
 const constructLinksGraph = (clicksByLink) => {
-  // console.log(clicksByLink);
+  //TODO: getting duplicates in array which leads to incorrect graphs, see "TheNeedForRepairabilityData" which should have a click on the 27th
   const chartData = [];
+  //create an array of all dates in each link
+
+  let allDates = [];
+
   clicksByLink.forEach((link) => {
-    chartData.push({ data: link });
+    link.clicksByDate?.forEach((date) => {
+      const dateExists = allDates.find((d) => {
+        return d === date.date;
+      });
+      if (!dateExists) {
+        allDates.push(date.date);
+      }
+    });
   });
-  console.log(chartData);
+
+  allDates = allDates.sort((a, b) => {
+    const dateA = new Date("2022/" + a).getTime();
+    const dateB = new Date("2022/" + b).getTime();
+    return dateA - dateB;
+  });
+
+  clicksByLink.forEach((link) => {
+    for (let i = 0; i < allDates.length; i++) {
+      const curDate = allDates[i];
+      const index = link.clicksByDate?.findIndex(
+        (clickByDate) => clickByDate.date === curDate
+      );
+      if (index === -1) {
+        link.clicksByDate?.push({ date: curDate, count: 0 });
+      }
+    }
+  });
+
+  clicksByLink.forEach((link) => {
+    if (link.clicksByDate) {
+      link.clicksByDate = sortByDate(link.clicksByDate);
+      chartData.push({
+        label: link.urlId,
+        data: link.clicksByDate.map((row) => row.count),
+      });
+    }
+  });
+
+  if (canvasRef) {
+    canvasRef.destroy();
+  }
 
   canvasRef = new Chart(document.getElementById("stat-chart"), {
     type: "line",
@@ -178,18 +220,9 @@ const constructLinksGraph = (clicksByLink) => {
           },
         },
       },
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
-      parsing: {
-        xAxisKey: "clicksByDate.date",
-        yAxisKey: "clicksByDate.count",
-      },
     },
     data: {
-      labels: chartData[0].data.clicksByDate.map((row) => row.date),
+      labels: allDates,
       datasets: chartData,
     },
   });
@@ -253,6 +286,8 @@ constructClicksByDate = (data) => {
   });
   return { linkDetails, clicksByDate };
 };
+
+//Brutal...https://codepen.io/heaversm/pen/eYLqbpo?editors=0011
 
 constructClicksByLink = (data) => {
   let linkDetails = "";
@@ -337,8 +372,6 @@ const handleSubmit = (e) => {
       if (data.error) {
         showError(true, data.error);
       } else {
-        console.log(data);
-
         if (statsMethod === "episodeId") {
           let linkDetails = "";
           let clicksByLink = [];
