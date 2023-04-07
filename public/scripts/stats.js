@@ -341,23 +341,15 @@ constructClicksByLink = (data) => {
   return { linkDetails, data };
 };
 
-const handleSubmit = (e) => {
-  e.preventDefault();
-  //receive the form input origUrl value
-  const userIdVal = document.getElementById("userId").value;
-  const episodeIdVal = document.getElementById("episodeId").value;
-  const shortUrlVal = document.getElementById("shortUrl").value;
-  let statsMethod = userIdVal
-    ? "userId"
-    : episodeIdVal
-    ? "episodeId"
-    : "shortUrl";
-  let postBody = userIdVal
-    ? `{"userId": "${userIdVal}"}`
-    : episodeIdVal
-    ? `{"episodeId": "${episodeIdVal}"}`
-    : `{"shortUrl": "${shortUrlVal}"}`;
-
+const getStatsByMethod = (statsMethod) => {
+  let postBody;
+  if (statsMethod === "userId") {
+    postBody = `{"userId": "${document.getElementById("userId").value}"}`;
+  } else if (statsMethod === "episodeId") {
+    postBody = `{"episodeId": "${document.getElementById("episodeId").value}"}`;
+  } else {
+    postBody = `{"shortUrl": "${document.getElementById("shortUrl").value}"}`;
+  }
   const options = {
     method: "POST",
     headers: {
@@ -395,11 +387,61 @@ const handleSubmit = (e) => {
             clicksByDate = sortByDate(clicksByDate);
             constructStatsGraph(clicksByDate);
           }
+
+          if (statsMethod === "userId") {
+            // console.log(data);
+            constructEpisodeDropdown(data);
+          }
           document.getElementById("stat-results").innerHTML = linkDetails;
           showError(false);
         }
       }
     });
+};
+
+const handleSubmit = (e) => {
+  e.preventDefault();
+  //receive the form input origUrl value
+  const userIdVal = document.getElementById("userId").value;
+  const episodeIdVal = document.getElementById("episodeId").value;
+  let statsMethod = userIdVal
+    ? "userId"
+    : episodeIdVal
+    ? "episodeId"
+    : "shortUrl";
+
+  getStatsByMethod(statsMethod);
+};
+
+constructEpisodeDropdown = (data) => {
+  let episodes = `<p class="instructions">Filter by episode</p><select name="episodeFilter" id="episodeFilter"><option disabled selected value> -- select an episode -- </option>`;
+  const uniqueEpisodes = _.uniqBy(data, "episodeId");
+  uniqueEpisodes.forEach((episode) => {
+    episodes += `<option value=${episode.episodeId}>${episode.episodeName}</option>`;
+  });
+  episodes += `</select>`;
+  const outputGroup = document.createElement("div");
+  outputGroup.classList.add("output-group");
+  outputGroup.innerHTML = episodes;
+  document.querySelector("#error").after(outputGroup);
+
+  addEpisodeDropdownListener();
+};
+
+removeEpisodeDropdown = () => {
+  const episodeFilter = document.getElementById("episodeFilter");
+  if (episodeFilter) {
+    episodeFilter.removeEventListener("change", () => {});
+    episodeFilter.remove();
+  }
+};
+
+const addEpisodeDropdownListener = () => {
+  document.getElementById("episodeFilter").addEventListener("change", (e) => {
+    clearRetrievalVals();
+    document.getElementById("episodeId").value = e.target.value;
+    getStatsByMethod("episodeId");
+  });
 };
 
 const showError = (show = true, error = null) => {
@@ -427,10 +469,14 @@ const clearRetrievalVals = () => {
 
 const handleRetrievalMethodSelect = (e) => {
   clearRetrievalVals();
+
   const currentButtonId = e.target.dataset.id;
   if (currentButtonId === "userId") {
     checkForUserId();
+  } else {
+    removeEpisodeDropdown();
   }
+
   document.querySelectorAll(".form-method").forEach((el) => {
     if (el.dataset.id === currentButtonId) {
       el.classList.toggle("hidden", false);
