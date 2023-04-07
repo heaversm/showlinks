@@ -4,18 +4,18 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Show Notes: Create</title>
+  <title>Show Links: Create</title>
   <link rel="stylesheet" href="styles/main.css">
   <link href="styles/lib/quill.snow.css" rel="stylesheet" />
 </head>
 <body>
   <main>
-    <h1>Show Notes</h1>
+    <h1>Show Links</h1>
     <section class="section-menu">
       <nav>
         <a class="active" href="/">Create</a>
         <a href="/stats">Get Stats</a>
-        <!--<a href="/transcribe">Transcribe</a>-->
+        <a href="/transcribe">Transcribe</a>
         <a href="/contact">Contact</a>
       </nav>
     </section>
@@ -24,7 +24,7 @@
       
       <form id="linkCreatorForm">
         <div class="form-group">
-          <label for="origUrl">Shownotes</label>
+          <label for="origUrl">Show Notes</label>
           <p class="instructions">Enter your show notes in here. Once you hit submit, any links in the show notes field will be replaced with short links that will allow you to track clicks.</p>
           <div id="editor-container"></div>
         </div>
@@ -35,7 +35,7 @@
             <input type="text" name="userId" id="userId" maxlength="50">
           </p>
           <p id="userIdGroup">
-            <button type="button" id="getUserId">I need one</button>
+            <button type="button" id="getUserId">I need one</button><br/>
             <span class="instructions">A user ID helps you track of all of your links in one place. If you don't yet have one, click "I need one" to generate an ID. If you received an ID at some point, click "Find Mine" and we will attempt to locate it.</span>
           </p>
         </div>
