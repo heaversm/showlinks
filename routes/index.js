@@ -46,7 +46,7 @@ router.get("/:urlId", async (req, res) => {
       const browserMatch = userAgent.match(browserRegex);
       const osMatch = userAgent.match(osRegex);
       const deviceMatch = userAgent.match(deviceRegex);
-      const host = req.get("host") || "";
+      const host = req.get("referrer") || "Unknown";
 
       const browser = browserMatch ? browserMatch[1] : "";
       const os = osMatch ? osMatch[1] : "";
