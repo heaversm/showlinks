@@ -1,34 +1,26 @@
-# Node.js URL Shortener API
+# Showlinks
 
-This is an URL shortener service like bit.ly or cutt.ly. The front-end is not covered here. The API service can take a long URL and convert it to a shorter URL. MongoDB is used as the database. The long URL, short URL, and other details are stored in the database. When a long URL that is already stored in the database is passed again, it returns the older shortened URL.
+Gain insights on user interaction with your podcast shownotes
 
 ## Run Locally
 
+* Clone the project**
 
-**Clone the project**
+* Get the `.env` file from the project owner
 
-**Create a .env file** with the following variables (you will fill in the URI next):
+* [Sign up for the mongo atlas free tier](https://www.mongodb.com/cloud/atlas)
 
-```
-PORT=3333
-MONGO_URI=
-BASE=http://localhost:3333
-```
+  * Choose your region and click on the "Create a free cluster" button
+  * Choose "Connect Your Application" from the "choose a connection method" modal
+  * Copy your connection URL and paste it in the .env file's `MONGO_URI` variable
 
-[Sign up for the mongo atlas free tier](https://www.mongodb.com/cloud/atlas)
-
-Choose your region and click on the "Create a free cluster" button
-Choose "Connect Your Application" from the "choose a connection method" modal
-Copy your connection URL and paste it in the .env file's `MONGO_URI` variable
-
-
-**Install dependencies**
+* Install dependencies*
 
 ```bash
   npm install
 ```
 
-**Start the server**
+* Start the server
 
 ```bash
   npm run start
@@ -74,11 +66,16 @@ Content-Type: application/json
 GET http://localhost:3333/SLiCKEXdn
 ```
 
-## Environment Variables
+### Generate User ID
+  
+  ```http
+    GET /api/generateUserId
+  ```
 
-To run this project, you will need to add the following environment variables to your `.env` file
+### Get Stats
 
-| Variable    | Description             |
-| :---------- | :---------------------- |
-| `MONGO_URI` | MongoDB URI             |
-| `BASE`      | Base URL for Shortening |
+  ```http
+    GET /api/stats
+  ```
+
+Pass either a `userId`, `episodeId` or `shortUrl` in the body to get the stats for that particular item

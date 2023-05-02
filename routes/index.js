@@ -5,6 +5,7 @@ import Url from "../models/Url.js";
 import Stat from "../models/Stat.js";
 //import the ua-parser node module
 import UAParser from "ua-parser-js";
+import axios from "axios";
 
 const router = express.Router();
 const templates = path.join(process.cwd(), "templates");
@@ -56,16 +57,47 @@ router.get("/:urlId", async (req, res) => {
           : "Desktop"
         : "Desktop";
 
+      const ts = new Date();
+      const ts_micros = ts.getTime() * 1000;
+      const showlink = req.params.urlId;
+
       let stat = new Stat({
-        urlRef: req.params.urlId,
+        urlRef: showlink,
         browser: browser,
         os: os,
         device: device,
-        accessDate: new Date(),
+        accessDate: ts,
         host: host,
       });
 
-      await stat.save();
+      await stat.save(); //save stat to database
+
+      //log in ga:
+      const measurement_id = process.env.G_MEASUREMENT_ID;
+      const api_secret = process.env.G_MEASUREMENT_KEY;
+      const client_id = process.env.G_CLIENT_ID;
+
+      const ga_payload = {
+        client_id: client_id,
+        timestamp_micros: ts_micros,
+        non_personalized_ads: true,
+        events: [
+          {
+            name: "access_link",
+            params: {
+              showlink: showlink,
+            },
+          },
+        ],
+      };
+
+      const ga_url = `https://www.google-analytics.com/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`;
+      try {
+        const response = await axios.post(ga_url, ga_payload);
+        console.log("ga_success");
+      } catch (error) {
+        console.error("Error sending Google Analytics request:", error);
+      }
 
       await Url.updateOne(
         {
@@ -73,6 +105,7 @@ router.get("/:urlId", async (req, res) => {
         },
         { $inc: { clicks: 1 } }
       );
+
       return res.redirect(url.origUrl);
     } else res.status(404).json("Not found");
   } catch (err) {
