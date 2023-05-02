@@ -1,6 +1,6 @@
 # Showlinks
 
-Gain insights on user interaction with your podcast shownotes
+Gain insights on user interaction with your podcast show notes
 
 ## Run Locally
 
