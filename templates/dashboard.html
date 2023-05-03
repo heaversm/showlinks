@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-E6KVMF9RJJ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-E6KVMF9RJJ');
+  </script>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Show Links: Dashboard</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+
+  <main>
+    <h1>Show Links</h1>
+    <section class="section-menu">
+      <nav>
+        <a href="/">Create</a>
+        <a class="active" href="/stats">Get Stats</a>
+        <a href="/transcribe">Transcribe</a>
+        <a href="/contact">Contact</a>
+      </nav>
+    </section>
+    <section class="section-form">
+      <h2>Dashboard</h2>
+      <div class="dashboard-container">
+        <section id="auth-button"></section>
+        <section id="view-selector"></section>
+        <section id="timeline"></section>
+      </div>
+    </section>
+  </main>
+  <script src="scripts/lib/chart.js"></script>
+  <script src="scripts/lib/lodash.js"></script>
+  <script>
+    (function(w,d,s,g,js,fjs){
+      g=w.gapi||(w.gapi={});g.analytics={q:[],ready:function(cb){this.q.push(cb)}};
+      js=d.createElement(s);fjs=d.getElementsByTagName(s)[0];
+      js.src='https://apis.google.com/js/platform.js';
+      fjs.parentNode.insertBefore(js,fjs);js.onload=function(){g.load('analytics')};
+    }(window,document,'script'));
+  </script>
+  <script src="scripts/dashboard.js"></script>
+</body>
+</html>

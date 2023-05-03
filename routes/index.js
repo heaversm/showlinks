@@ -27,6 +27,14 @@ router.get("/stats", (req, res) => {
   res.sendFile("stats.html", { root: templates });
 });
 
+router.get("/dashboard", (req, res) => {
+  res.sendFile("dashboard.html", { root: templates });
+});
+
+router.get("/privacy", (req, res) => {
+  res.sendFile("privacy.html", { root: templates });
+});
+
 router.get("/contact", (req, res) => {
   req.session.csrf = req.csrfToken();
   res.sendFile("contact.html", { root: templates, token: req.session.csrf });
