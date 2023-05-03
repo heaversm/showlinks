@@ -48,7 +48,7 @@ app.use('/api', urlsRouter);
 
 //CORS for google TODO: set to same-origin-allow-popups if this works
 app.use(function(req, res, next) {
-  res.header("Cross-Origin-Opener-Policy", "unsafe-none");
+  res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
   next();
 });
 
