@@ -28,7 +28,7 @@ router.get("/stats", (req, res) => {
 });
 
 router.get("/dashboard", (req, res) => {
-  res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
   //next();
   res.sendFile("dashboard.html", { root: templates });
 });
