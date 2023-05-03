@@ -45,6 +45,13 @@ app.use(
 app.use('/', indexRouter);
 app.use('/api', urlsRouter);
 
+
+//CORS for google TODO: set to same-origin-allow-popups if this works
+app.use(function(req, res, next) {
+  res.header("Cross-Origin-Opener-Policy", "unsafe-none");
+  next();
+});
+
 // Server Setup
 const PORT = process.env.PORT || 3333;
 app.listen(PORT, () => {
