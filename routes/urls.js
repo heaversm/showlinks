@@ -8,6 +8,8 @@ import formData from "form-data";
 import { Configuration, OpenAIApi } from "openai";
 import * as fs from "fs";
 import multer from "multer";
+import ID3Writer from "browser-id3-writer";
+import { XMLHttpRequest } from "xmlhttprequest";
 
 const openAiConfiguration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -23,6 +25,30 @@ const mg = mailgun.client({
 });
 
 const upload = multer({ dest: "uploads/" });
+
+const SAMPLE_RAD_DATA = {
+  remoteAudioData: {
+    trackingUrls: ["https://showlinks.herokuapp.com/api/track_rad"],
+    events: [
+      {
+        eventTime: "00:00:00.000",
+        label: "podcastDownload",
+        spId: "0",
+        creativeId: "0",
+        adPosition: "0",
+        eventNum: "0",
+      },
+      {
+        eventTime: "00:00:05.000",
+        label: "podcastStart",
+        spId: "0",
+        creativeId: "0",
+        adPosition: "0",
+        eventNum: "1",
+      },
+    ],
+  },
+};
 
 const srtToTimestampedText = (srtString) => {
   // Split the string into an array of subtitle blocks
@@ -235,6 +261,61 @@ router.post("/contact", async (req, res) => {
   const emailResponse = await sendEmail(req.body);
   // Send a success response
   res.json({ message: "Your information has been submitted successfully!" });
+});
+
+router.post("/writeRad", upload.single("file"), async (req, res, next) => {
+  const method = req.body.method;
+  console.log("method", method);
+  if (!method) {
+    console.error("no method specified");
+    return res.status(400).json({ error: "Invalid podcast URL." });
+  }
+  let arrayBuffer, writer;
+  if (method === "url") {
+    const url = req.body.url;
+    if (!url || url === "") {
+      console.error("no valid url");
+      return res.status(400).json({ error: "Invalid podcast URL." });
+    }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.responseType = "arraybuffer";
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        //console.log("response", xhr);
+        arrayBuffer = xhr.responseText;
+        // go next
+
+        writer = new ID3Writer(arrayBuffer);
+        writer.setFrame("TXXX", {
+          data: SAMPLE_RAD_DATA,
+        });
+        writer.addTag();
+        const taggedSongBuffer = Buffer.from(writer.arrayBuffer);
+        fs.writeFileSync("temp-rad-file.mp3", taggedSongBuffer);
+
+        res.json({ msg: `received url ${url}` });
+      } else {
+        // handle error
+        const error = xhr.statusText + " (" + xhr.status + ")";
+        console.error(error);
+        return res.status(400).json({ error: error });
+      }
+    };
+    xhr.onerror = function () {
+      // handle error
+      console.error("Network error");
+    };
+    xhr.send();
+  } else if (method === "file") {
+    const file = req.file;
+    if (!file || file === "") {
+      console.error("no valid file");
+      return res.status(400).json({ error: "Invalid file" });
+    }
+    res.json({ msg: "received file" });
+  }
 });
 
 // router.post("/transcribe", async (req, res) => {

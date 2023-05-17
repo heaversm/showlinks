@@ -46,6 +46,10 @@ router.get("/transcribe", (req, res) => {
   res.sendFile("transcribe.html", { root: templates });
 });
 
+router.get("/rad", (req, res) => {
+  res.sendFile("rad.html", { root: templates });
+});
+
 router.get("/:urlId", async (req, res) => {
   //console.log("get id", req.params.urlId);
 
