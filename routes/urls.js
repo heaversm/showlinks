@@ -12,6 +12,12 @@ import ID3Writer from "browser-id3-writer";
 import { XMLHttpRequest } from "xmlhttprequest";
 import https from "https";
 
+//Due to dirname being undefined in ESModules:
+//https://flaviocopes.com/fix-dirname-not-defined-es-module-scope/
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const openAiConfiguration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -317,8 +323,32 @@ router.post("/writeRad", upload.single("file"), async (req, res, next) => {
             });
             writer.addTag();
             const taggedSongBuffer = Buffer.from(writer.arrayBuffer);
-            fs.writeFileSync("temp-rad-file.mp3", taggedSongBuffer);
-            res.json({ msg: `received url ${url}` });
+            const radFile = fs.writeFileSync(
+              "temp-rad-file.mp3",
+              taggedSongBuffer
+            );
+
+            //res.json({ msg: `received url ${url}` });
+            const filePath = path.join(__dirname, "../temp-rad-file.mp3");
+            // res.download("temp-rad-file.mp3"); // Set disposition and send it.
+            //console.log(filePath);
+
+            fs.stat(filePath, (error, stats) => {
+              if (error) {
+                res.statusCode = 404;
+                res.end("File not found");
+                return;
+              }
+              console.log("stats", stats);
+
+              res.writeHead(200, {
+                "Content-Type": "audio/mpeg",
+                "Content-Length": stats.size,
+              });
+
+              const fileStream = fs.createReadStream(filePath);
+              fileStream.pipe(res);
+            });
           });
         }
       })

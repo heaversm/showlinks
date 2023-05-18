@@ -51,9 +51,18 @@ const addEventListeners = () => {
       body: formData,
     };
     fetch(`/api/writeRad/`, options)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
+      //.then((res) => res.json())
+      // .then((data) => {
+      //   console.log(data);
+      // });
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "rad-file.mp3";
+        a.click();
+        URL.revokeObjectURL(url);
       });
   });
   document
