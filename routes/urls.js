@@ -10,6 +10,7 @@ import * as fs from "fs";
 import multer from "multer";
 import ID3Writer from "browser-id3-writer";
 import { XMLHttpRequest } from "xmlhttprequest";
+import https from "https";
 
 const openAiConfiguration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -49,6 +50,8 @@ const SAMPLE_RAD_DATA = {
     ],
   },
 };
+
+let STRINGIFIED_RAD_DATA = JSON.stringify(SAMPLE_RAD_DATA);
 
 const srtToTimestampedText = (srtString) => {
   // Split the string into an array of subtitle blocks
@@ -98,6 +101,15 @@ const sendEmail = async (contactFormData) => {
         return reject(err);
       }); // logs any error`;
   });
+};
+
+const toArrayBuffer = (buffer) => {
+  const arrayBuffer = new ArrayBuffer(buffer.length);
+  const view = new Uint8Array(arrayBuffer);
+  for (let i = 0; i < buffer.length; ++i) {
+    view[i] = buffer[i];
+  }
+  return arrayBuffer;
 };
 
 //ID generator
@@ -277,37 +289,43 @@ router.post("/writeRad", upload.single("file"), async (req, res, next) => {
       console.error("no valid url");
       return res.status(400).json({ error: "Invalid podcast URL." });
     }
+    //getting array buffer
+    // const xhr = new XMLHttpRequest();
+    // xhr.open("GET", url, true);
+    // xhr.responseType = "arraybuffer";
 
-    const xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
-    xhr.responseType = "arraybuffer";
-    xhr.onload = function () {
-      if (xhr.status === 200) {
-        //console.log("response", xhr);
-        arrayBuffer = xhr.responseText;
-        // go next
+    https
+      .get(url, (response) => {
+        if (response.statusCode === 200) {
+          const chunks = [];
 
-        writer = new ID3Writer(arrayBuffer);
-        writer.setFrame("TXXX", {
-          data: SAMPLE_RAD_DATA,
-        });
-        writer.addTag();
-        const taggedSongBuffer = Buffer.from(writer.arrayBuffer);
-        fs.writeFileSync("temp-rad-file.mp3", taggedSongBuffer);
+          response.on("data", (chunk) => {
+            chunks.push(chunk);
+          });
 
-        res.json({ msg: `received url ${url}` });
-      } else {
-        // handle error
-        const error = xhr.statusText + " (" + xhr.status + ")";
-        console.error(error);
+          response.on("end", () => {
+            const chunkedBuffer = Buffer.concat(chunks);
+            // The 'arrayBuffer' now contains the MP3 file as a Buffer.
+            // You can convert it to an ArrayBuffer if needed.
+            //console.log("chunkedBuffer", chunkedBuffer);
+            const arrayBuffer = toArrayBuffer(chunkedBuffer);
+            //console.log("arrayBuffer", arrayBuffer);
+            writer = new ID3Writer(arrayBuffer);
+            writer.setFrame("TXXX", {
+              description: "RAD",
+              value: STRINGIFIED_RAD_DATA,
+            });
+            writer.addTag();
+            const taggedSongBuffer = Buffer.from(writer.arrayBuffer);
+            fs.writeFileSync("temp-rad-file.mp3", taggedSongBuffer);
+            res.json({ msg: `received url ${url}` });
+          });
+        }
+      })
+      .on("error", (error) => {
+        console.error("Error retrieving MP3 file:", error);
         return res.status(400).json({ error: error });
-      }
-    };
-    xhr.onerror = function () {
-      // handle error
-      console.error("Network error");
-    };
-    xhr.send();
+      });
   } else if (method === "file") {
     const file = req.file;
     if (!file || file === "") {
