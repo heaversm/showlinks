@@ -323,15 +323,15 @@ router.post("/writeRad", upload.single("file"), async (req, res, next) => {
             });
             writer.addTag();
             const taggedSongBuffer = Buffer.from(writer.arrayBuffer);
-            const radFile = fs.writeFileSync(
-              "temp-rad-file.mp3",
-              taggedSongBuffer
-            );
+            const fileID = nanoid();
+            const fileName = `${fileID}.mp3`;
+            const radFile = fs.writeFileSync(fileName, taggedSongBuffer);
 
             //res.json({ msg: `received url ${url}` });
-            const filePath = path.join(__dirname, "../temp-rad-file.mp3");
+
+            const filePath = path.join(__dirname, `../${fileName}`);
             // res.download("temp-rad-file.mp3"); // Set disposition and send it.
-            //console.log(filePath);
+            console.log("filePath", filePath);
 
             fs.stat(filePath, (error, stats) => {
               if (error) {
@@ -339,8 +339,6 @@ router.post("/writeRad", upload.single("file"), async (req, res, next) => {
                 res.end("File not found");
                 return;
               }
-              console.log("stats", stats);
-
               res.writeHead(200, {
                 "Content-Type": "audio/mpeg",
                 "Content-Length": stats.size,
@@ -348,6 +346,15 @@ router.post("/writeRad", upload.single("file"), async (req, res, next) => {
 
               const fileStream = fs.createReadStream(filePath);
               fileStream.pipe(res);
+              fileStream.on("end", () => {
+                fs.unlink(filePath, (err) => {
+                  if (err) {
+                    console.error(err);
+                    return;
+                  }
+                  console.log("file removed");
+                });
+              });
             });
           });
         }
