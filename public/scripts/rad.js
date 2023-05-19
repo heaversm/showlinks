@@ -17,11 +17,25 @@ const handleMethodChange = (e) => {
   document.getElementById("fg-submit").classList.toggle("hidden", false);
 };
 
+const submitRadFile = (options) => {
+  //TODO: status message that we are submitting file
+  fetch(`/api/writeRad/`, options)
+    .then((response) => response.blob())
+    .then((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "rad-file.mp3";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+};
+
 const addEventListeners = () => {
   document.getElementById("radForm").addEventListener("submit", function (e) {
     e.preventDefault(); // before the code
-    console.log("submit", method);
     const formData = new FormData();
+    formData.append("method", method);
 
     if (method && method === "file") {
       const file = document.getElementById("audioFile").files[0];
@@ -31,39 +45,41 @@ const addEventListeners = () => {
       }
 
       formData.append("file", file);
+      const options = {
+        method: "POST",
+        body: formData,
+      };
+      submitRadFile(options);
     } else if (method && method === "url") {
       const url = document.getElementById("audioURL").value;
       console.log("url", url);
+
+      //get duration here
+
       if (!url) {
         console.log("no url provided");
         return;
       }
       formData.append("url", url);
-    }
-
-    //COMMON
-    formData.append("method", method);
-    const options = {
-      method: "POST",
-      // headers: {
-      //   "Content-Type": "application/json",
-      // },
-      body: formData,
-    };
-    fetch(`/api/writeRad/`, options)
-      //.then((res) => res.json())
-      // .then((data) => {
-      //   console.log(data);
-      // });
-      .then((response) => response.blob())
-      .then((blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "rad-file.mp3";
-        a.click();
-        URL.revokeObjectURL(url);
+      //TODO: status message that we are obtaining duration
+      const audio = new Audio(url);
+      audio.addEventListener("loadedmetadata", () => {
+        const duration = audio.duration;
+        formData.append("duration", duration);
+        // console.log("Duration:", duration); // Duration in seconds
+        const options = {
+          method: "POST",
+          body: formData,
+        };
+        submitRadFile(options);
       });
+      audio.addEventListener("error", (error) => {
+        console.error("Error loading audio:", error);
+      });
+
+      // Start loading the audio
+      audio.load();
+    }
   });
   document
     .getElementById("method")

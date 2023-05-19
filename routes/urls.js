@@ -33,7 +33,7 @@ const mg = mailgun.client({
 
 const upload = multer({ dest: "uploads/" });
 
-const SAMPLE_RAD_DATA = {
+const RAD_DATA = {
   remoteAudioData: {
     trackingUrls: ["https://showlinks.herokuapp.com/api/track_rad"],
     events: [
@@ -46,7 +46,7 @@ const SAMPLE_RAD_DATA = {
         eventNum: "0",
       },
       {
-        eventTime: "00:00:05.000",
+        eventTime: "00:00:01.000",
         label: "podcastStart",
         spId: "0",
         creativeId: "0",
@@ -57,7 +57,25 @@ const SAMPLE_RAD_DATA = {
   },
 };
 
-let STRINGIFIED_RAD_DATA = JSON.stringify(SAMPLE_RAD_DATA);
+const durationIncrement = 10; //Generate an event every X seconds
+
+const generateDurationEvents = (duration) => {
+  const numDurationEvents = Math.floor(duration / durationIncrement);
+  const defaultEvents = RAD_DATA.remoteAudioData.events.length;
+  for (let i = 0; i < numDurationEvents; i++) {
+    const eventNum = i + defaultEvents;
+    const eventNumStr = eventNum.toString();
+    const durationEvent = {
+      eventTime: `00:00:${durationIncrement * (i + 1)}.000`,
+      label: `podcastDuration${eventNum}`,
+      spId: "0",
+      creativeId: "0",
+      adPosition: "0",
+      eventNum: eventNumStr,
+    };
+    RAD_DATA.remoteAudioData.events.push(durationEvent);
+  }
+};
 
 const srtToTimestampedText = (srtString) => {
   // Split the string into an array of subtitle blocks
@@ -291,6 +309,18 @@ router.post("/writeRad", upload.single("file"), async (req, res, next) => {
   let arrayBuffer, writer;
   if (method === "url") {
     const url = req.body.url;
+    const duration = req.body.duration;
+    console.log("duration", duration);
+
+    if (!duration || duration === "") {
+      console.error("no valid url");
+      return res.status(400).json({ error: "No duration" });
+    }
+
+    generateDurationEvents(duration);
+    const stringifiedRadData = JSON.stringify(RAD_DATA);
+    console.log("stringifiedRadData", stringifiedRadData);
+
     if (!url || url === "") {
       console.error("no valid url");
       return res.status(400).json({ error: "Invalid podcast URL." });
@@ -319,7 +349,7 @@ router.post("/writeRad", upload.single("file"), async (req, res, next) => {
             writer = new ID3Writer(arrayBuffer);
             writer.setFrame("TXXX", {
               description: "RAD",
-              value: STRINGIFIED_RAD_DATA,
+              value: stringifiedRadData,
             });
             writer.addTag();
             const taggedSongBuffer = Buffer.from(writer.arrayBuffer);
