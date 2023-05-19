@@ -38,23 +38,36 @@ const addEventListeners = () => {
     formData.append("method", method);
 
     if (method && method === "file") {
+      console.log("file");
       const file = document.getElementById("audioFile").files[0];
       if (!file) {
         console.log("no file provided");
         return;
       }
-
       formData.append("file", file);
-      const options = {
-        method: "POST",
-        body: formData,
-      };
-      submitRadFile(options);
+      const audio = new Audio();
+
+      audio.addEventListener("loadedmetadata", () => {
+        const duration = audio.duration;
+        console.log("Duration:", duration); // Duration in seconds
+        formData.append("duration", duration);
+        // console.log("Duration:", duration); // Duration in seconds
+        const options = {
+          method: "POST",
+          body: formData,
+        };
+        submitRadFile(options);
+      });
+      audio.addEventListener("error", (error) => {
+        console.error("Error loading audio:", error);
+      });
+      const fileUrl = URL.createObjectURL(file);
+      audio.src = fileUrl;
+      // audio.load();
+      console.log("audio", audio);
     } else if (method && method === "url") {
       const url = document.getElementById("audioURL").value;
       console.log("url", url);
-
-      //get duration here
 
       if (!url) {
         console.log("no url provided");

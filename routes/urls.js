@@ -59,14 +59,30 @@ const RAD_DATA = {
 
 const durationIncrement = 10; //Generate an event every X seconds
 
+const secondsToTimestamp = (duration) => {
+  const hours = Math.floor(duration / 3600);
+  const minutes = Math.floor((duration % 3600) / 60);
+  const seconds = Math.floor(duration % 60);
+  const milliseconds = Math.floor((duration % 1) * 1000);
+
+  const formattedHours = hours.toString().padStart(2, "0");
+  const formattedMinutes = minutes.toString().padStart(2, "0");
+  const formattedSeconds = seconds.toString().padStart(2, "0");
+  const formattedMilliseconds = milliseconds.toString().padStart(3, "0");
+
+  return `${formattedHours}:${formattedMinutes}:${formattedSeconds}.${formattedMilliseconds}`;
+};
+
 const generateDurationEvents = (duration) => {
   const numDurationEvents = Math.floor(duration / durationIncrement);
   const defaultEvents = RAD_DATA.remoteAudioData.events.length;
   for (let i = 0; i < numDurationEvents; i++) {
     const eventNum = i + defaultEvents;
     const eventNumStr = eventNum.toString();
+    const durationTimestamp = secondsToTimestamp(durationIncrement * (i + 1));
+    console.log("durationTimestamp", durationTimestamp);
     const durationEvent = {
-      eventTime: `00:00:${durationIncrement * (i + 1)}.000`,
+      eventTime: durationTimestamp,
       label: `podcastDuration${eventNum}`,
       spId: "0",
       creativeId: "0",
@@ -299,6 +315,47 @@ router.post("/contact", async (req, res) => {
   res.json({ message: "Your information has been submitted successfully!" });
 });
 
+const sendSongToClient = async (arrayBuffer, stringifiedRadData, res) => {
+  const writer = new ID3Writer(arrayBuffer);
+  writer.setFrame("TXXX", {
+    description: "RAD",
+    value: stringifiedRadData,
+  });
+  writer.addTag();
+  const taggedSongBuffer = Buffer.from(writer.arrayBuffer);
+  const fileID = nanoid();
+  const fileName = `${fileID}.mp3`;
+  fs.writeFileSync(fileName, taggedSongBuffer);
+
+  const filePath = path.join(__dirname, `../${fileName}`);
+  // res.download("temp-rad-file.mp3"); // Set disposition and send it.
+  console.log("filePath", filePath);
+
+  fs.stat(filePath, (error, stats) => {
+    if (error) {
+      res.statusCode = 404;
+      res.end("File not found");
+      return;
+    }
+    res.writeHead(200, {
+      "Content-Type": "audio/mpeg",
+      "Content-Length": stats.size,
+    });
+
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+    fileStream.on("end", () => {
+      fs.unlink(filePath, (err) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        console.log("file removed");
+      });
+    });
+  });
+};
+
 router.post("/writeRad", upload.single("file"), async (req, res, next) => {
   const method = req.body.method;
   console.log("method", method);
@@ -306,29 +363,26 @@ router.post("/writeRad", upload.single("file"), async (req, res, next) => {
     console.error("no method specified");
     return res.status(400).json({ error: "Invalid podcast URL." });
   }
-  let arrayBuffer, writer;
+
+  //COMMON
+  const duration = req.body.duration;
+  console.log("duration", duration);
+
+  if (!duration || duration === "") {
+    console.error("no valid url");
+    return res.status(400).json({ error: "No duration" });
+  }
+
+  generateDurationEvents(duration);
+  const stringifiedRadData = JSON.stringify(RAD_DATA);
+
   if (method === "url") {
     const url = req.body.url;
-    const duration = req.body.duration;
-    console.log("duration", duration);
-
-    if (!duration || duration === "") {
-      console.error("no valid url");
-      return res.status(400).json({ error: "No duration" });
-    }
-
-    generateDurationEvents(duration);
-    const stringifiedRadData = JSON.stringify(RAD_DATA);
-    console.log("stringifiedRadData", stringifiedRadData);
 
     if (!url || url === "") {
       console.error("no valid url");
       return res.status(400).json({ error: "Invalid podcast URL." });
     }
-    //getting array buffer
-    // const xhr = new XMLHttpRequest();
-    // xhr.open("GET", url, true);
-    // xhr.responseType = "arraybuffer";
 
     https
       .get(url, (response) => {
@@ -346,46 +400,7 @@ router.post("/writeRad", upload.single("file"), async (req, res, next) => {
             //console.log("chunkedBuffer", chunkedBuffer);
             const arrayBuffer = toArrayBuffer(chunkedBuffer);
             //console.log("arrayBuffer", arrayBuffer);
-            writer = new ID3Writer(arrayBuffer);
-            writer.setFrame("TXXX", {
-              description: "RAD",
-              value: stringifiedRadData,
-            });
-            writer.addTag();
-            const taggedSongBuffer = Buffer.from(writer.arrayBuffer);
-            const fileID = nanoid();
-            const fileName = `${fileID}.mp3`;
-            const radFile = fs.writeFileSync(fileName, taggedSongBuffer);
-
-            //res.json({ msg: `received url ${url}` });
-
-            const filePath = path.join(__dirname, `../${fileName}`);
-            // res.download("temp-rad-file.mp3"); // Set disposition and send it.
-            console.log("filePath", filePath);
-
-            fs.stat(filePath, (error, stats) => {
-              if (error) {
-                res.statusCode = 404;
-                res.end("File not found");
-                return;
-              }
-              res.writeHead(200, {
-                "Content-Type": "audio/mpeg",
-                "Content-Length": stats.size,
-              });
-
-              const fileStream = fs.createReadStream(filePath);
-              fileStream.pipe(res);
-              fileStream.on("end", () => {
-                fs.unlink(filePath, (err) => {
-                  if (err) {
-                    console.error(err);
-                    return;
-                  }
-                  console.log("file removed");
-                });
-              });
-            });
+            sendSongToClient(arrayBuffer, stringifiedRadData, res);
           });
         }
       })
@@ -399,7 +414,8 @@ router.post("/writeRad", upload.single("file"), async (req, res, next) => {
       console.error("no valid file");
       return res.status(400).json({ error: "Invalid file" });
     }
-    res.json({ msg: "received file" });
+    const fileBuffer = fs.readFileSync(file.path);
+    sendSongToClient(fileBuffer, stringifiedRadData, res);
   }
 });
 
