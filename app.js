@@ -38,6 +38,7 @@ app.use(
       "/api/stats/",
       "/api/transcribe/",
       "/api/writeRad/",
+      "/api/aitranscript/",
       "https://api.openai.com/v1/audio/transcriptions",
     ]
   )

@@ -50,6 +50,10 @@ router.get("/rad", (req, res) => {
   res.sendFile("rad.html", { root: templates });
 });
 
+router.get("/ai", (req, res) => {
+  res.sendFile("ai.html", { root: templates, token: req.session.csrf });
+});
+
 router.get("/:urlId", async (req, res) => {
   //console.log("get id", req.params.urlId);
 

@@ -11,10 +11,13 @@ import multer from "multer";
 import ID3Writer from "browser-id3-writer";
 import { XMLHttpRequest } from "xmlhttprequest";
 import https from "https";
+import { OpenAI } from "langchain/llms/openai"; //https://js.langchain.com/docs/getting-started/install
+import { ChatOpenAI } from "langchain/chat_models/openai";
+import { HumanChatMessage, SystemChatMessage } from "langchain/schema";
 
 //Due to dirname being undefined in ESModules:
 //https://flaviocopes.com/fix-dirname-not-defined-es-module-scope/
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -289,6 +292,23 @@ router.post("/stats", async (req, res) => {
     console.log(err);
     res.status(500).json("Server Error");
   }
+});
+
+router.post("/aitranscript", async (req, res) => {
+  const { transcript } = req.body;
+
+  console.log(transcript);
+  const chat = new ChatOpenAI({ temperature: 0 });
+
+  const response = await chat.call([
+    new HumanChatMessage(
+      "Translate this sentence from English to French. I love programming."
+    ),
+  ]);
+
+  console.log(response);
+
+  res.json({ message: response.text });
 });
 
 router.post("/contact", async (req, res) => {

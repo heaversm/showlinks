@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+  
+    gtag('config', 'G-E6KVMF9RJJ');
+  </script>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Show Links: Transcribe</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-E6KVMF9RJJ"></script>
+</head>
+
+<body>
+  <main>
+    <h1>Show Links</h1>
+    <section class="section-menu">
+      <nav>
+        <a href="/">Create</a>
+        <a href="/stats">Get Stats</a>
+        <a href="/transcribe">Transcribe</a>
+        <a href="/contact">Contact</a>
+        <a href="/rad">RAD</a>
+        <a class="active" href="/ai">AI</a>
+      </nav>
+    </section>
+    <section class="section-form">
+      <h2>AI assistant</h2>
+      <p>
+        Given your podcast transcript (which you can generate <a href="/transcribe">here</a>), this tool allows you to ask questions about a podcast, and get answers from an AI assistant.
+      </p>
+      <div id="read-data">
+        <form id="aiForm">
+          
+          <div class="form-group" id="fg-submit">
+            <button type="submit">Submit</button>
+          </div>
+        </form>
+      </div>
+    </section>
+   
+  </main>
+  <script src="scripts/ai.js"></script>
+</body>
+</html>
