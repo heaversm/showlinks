@@ -4,15 +4,22 @@ const init = () => {
   addEventListeners();
 };
 
-const submitTranscriptToAI = () => {
-  const postBody = `{"transcript": "test"}`;
+const submitTranscriptToAI = (e) => {
+  const inputFile = document.getElementById("file");
+  const statusField = document.getElementById("fileStatus");
+  if (!inputFile?.files) {
+    statusField.innerHTML = "No file selected";
+    return;
+  }
+  const file = inputFile.files[0];
+  statusField.innerHTML = "Studying transcript";
+
+  const formData = new FormData();
+  formData.append("file", file);
 
   const options = {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: postBody,
+    body: formData,
   };
 
   fetch(`/api/aitranscript/`, options)
@@ -20,10 +27,12 @@ const submitTranscriptToAI = () => {
     .then((data) => {
       if (data.error) {
         console.log(data.error);
+        statusField.innerHTML = data.error;
       } else {
         console.log(data);
         toggleVisibility("qaFormContainer", true);
         toggleVisibility("aiTranscriptContainer", false);
+        statusField.innerHTML = "";
       }
     })
     .catch((err) => {
@@ -44,7 +53,7 @@ const addEventListeners = () => {
   document.getElementById("aiForm").addEventListener("submit", function (e) {
     e.preventDefault();
     console.log("submit");
-    submitTranscriptToAI();
+    submitTranscriptToAI(e);
   });
 
   const qaForm = document.getElementById("qaForm");

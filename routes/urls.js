@@ -306,12 +306,17 @@ router.post("/stats", async (req, res) => {
   }
 });
 
-router.post("/aitranscript", async (req, res) => {
+router.post("/aitranscript", upload.single("file"), async (req, res) => {
   const { transcript } = req.body;
 
-  // console.log(transcript);
-  const filename = "transcript.txt";
-  const transcriptPath = path.join(process.cwd(), "uploads", filename);
+  const { originalname, mimetype, filename } = req.file;
+  const uploadPath = req.file.path;
+  const fileExt = originalname.slice(originalname.lastIndexOf("."));
+  // console.log(fileExt, filename, originalname, mimetype, uploadPath);
+
+  const transcriptPath = path.join(process.cwd(), uploadPath);
+  // res.json({ error: "test" });
+
   const loader = new TextLoader(transcriptPath);
   try {
     const docs = await loader.load();
@@ -329,7 +334,14 @@ router.post("/aitranscript", async (req, res) => {
       const retriever = vectorStore.asRetriever();
       // Create a chain that uses the OpenAI LLM and retriever.
       chain = RetrievalQAChain.fromLLM(llm, retriever);
-      res.json({ message: "QA Chain Established" });
+      fs.unlink(transcriptPath, (err) => {
+        if (err) {
+          console.error(err);
+          res.status(500).send("Error deleting file");
+          return;
+        }
+        res.json({ message: "QA Chain Established" });
+      });
     } catch (err) {
       console.log(err);
       res
@@ -345,13 +357,11 @@ router.post("/aitranscript", async (req, res) => {
 router.post("/qa", async (req, res) => {
   console.log(req.body);
   const question = req.body.question;
-  console.log(question);
-
   try {
     const chainResponse = await chain.call({
       query: question,
     });
-    console.log(question, chainResponse);
+    // console.log(question, chainResponse);
     res.json({ message: chainResponse.text });
   } catch (err) {
     console.log(err);

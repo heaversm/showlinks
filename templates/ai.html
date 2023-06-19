@@ -11,7 +11,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Show Links: Transcribe</title>
+  <title>Show Links: Show Q+A</title>
   <link rel="stylesheet" href="styles/main.css">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-E6KVMF9RJJ"></script>
 </head>
@@ -26,20 +26,24 @@
         <a href="/transcribe">Transcribe</a>
         <a href="/contact">Contact</a>
         <a href="/rad">RAD</a>
-        <a class="active" href="/ai">AI</a>
+        <a class="active" href="/ai">Podcast Q&A</a>
       </nav>
     </section>
     <section class="section-form" id="aiTranscriptContainer">
-      <h2>AI assistant</h2>
+      <h2>Show Q+A</h2>
       <p>
         Given your podcast transcript (which you can generate <a href="/transcribe">here</a>), this tool allows you to ask questions about a podcast, and get answers from an AI assistant.
       </p>
       <div id="read-data">
         <form id="aiForm">
-          
+          <div class="form-group">
+            <label for="file">Transcript File:</label>
+            <input type="file" id="file" name="file" accept=".srt, .txt, .vtt" required>
+          </div>
           <div class="form-group">
             <button type="submit">Submit</button>
           </div>
+          <div id="fileStatus" class="error"></div>
         </form>
       </div>
     </section>

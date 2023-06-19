@@ -29,11 +29,14 @@ app.use(
     saveUninitialized: false,
   })
 );
+//CSRF: add any exceptions here as the 3rd param
+//https://www.npmjs.com/package/tiny-csrf
 app.use(
   csurf(
     process.env.CSRF_SECRET,
-    ["POST"],
+    ["POST"], //methods to protect
     [
+      //exceptions
       "/api/short/",
       "/api/stats/",
       "/api/transcribe/",
