@@ -18,6 +18,7 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "express-session": "^1.17.3",
+    "faiss-node": "^0.2.1",
     "form-data": "^4.0.0",
     "https": "^1.0.0",
     "langchain": "^0.0.95",

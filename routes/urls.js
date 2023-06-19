@@ -11,9 +11,18 @@ import multer from "multer";
 import ID3Writer from "browser-id3-writer";
 import { XMLHttpRequest } from "xmlhttprequest";
 import https from "https";
+
 import { OpenAI } from "langchain/llms/openai"; //https://js.langchain.com/docs/getting-started/install
-import { ChatOpenAI } from "langchain/chat_models/openai";
-import { HumanChatMessage, SystemChatMessage } from "langchain/schema";
+
+//FOR OPENAI DEMO
+// import { ChatOpenAI } from "langchain/chat_models/openai";
+// import { HumanChatMessage, SystemChatMessage } from "langchain/schema";
+
+//FOR OPENAI TRANSCRIPT INTERACTION
+import { TextLoader } from "langchain/document_loaders/fs/text";
+import { FaissStore } from "langchain/vectorstores/faiss";
+import { OpenAIEmbeddings } from "langchain/embeddings/openai";
+import { RetrievalQAChain } from "langchain/chains"; //https://js.langchain.com/docs/modules/indexes/retrievers/remote-retriever
 
 //Due to dirname being undefined in ESModules:
 //https://flaviocopes.com/fix-dirname-not-defined-es-module-scope/
@@ -61,6 +70,9 @@ const RAD_DATA = {
 };
 
 const durationIncrement = 10; //Generate an event every X seconds
+
+//AI
+let chain;
 
 const secondsToTimestamp = (duration) => {
   const hours = Math.floor(duration / 3600);
@@ -297,18 +309,55 @@ router.post("/stats", async (req, res) => {
 router.post("/aitranscript", async (req, res) => {
   const { transcript } = req.body;
 
-  console.log(transcript);
-  const chat = new ChatOpenAI({ temperature: 0 });
+  // console.log(transcript);
+  const filename = "transcript.txt";
+  const transcriptPath = path.join(process.cwd(), "uploads", filename);
+  const loader = new TextLoader(transcriptPath);
+  try {
+    const docs = await loader.load();
 
-  const response = await chat.call([
-    new HumanChatMessage(
-      "Translate this sentence from English to French. I love programming."
-    ),
-  ]);
+    // Load the docs into the vector store
 
-  console.log(response);
+    const llm = new OpenAI();
 
-  res.json({ message: response.text });
+    try {
+      const vectorStore = await FaissStore.fromDocuments(
+        docs,
+        new OpenAIEmbeddings()
+      );
+
+      const retriever = vectorStore.asRetriever();
+      // Create a chain that uses the OpenAI LLM and retriever.
+      chain = RetrievalQAChain.fromLLM(llm, retriever);
+      res.json({ message: "QA Chain Established" });
+    } catch (err) {
+      console.log(err);
+      res
+        .status(500)
+        .json({ error: `Error establishing vector store: ${err}` });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: `Erorr loading transcript: ${err}` });
+  }
+});
+
+router.post("/qa", async (req, res) => {
+  console.log(req.session.csrf);
+  console.log(req.csrfToken());
+  console.log(req.body);
+  const question = req.body.question;
+
+  try {
+    const chainResponse = await chain.call({
+      query: question,
+    });
+    console.log(question, chainResponse);
+    res.json({ message: chainResponse });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: `Server Error ${err}` });
+  }
 });
 
 router.post("/contact", async (req, res) => {

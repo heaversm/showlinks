@@ -113,11 +113,11 @@ select {
 
 /* CONTACT */
 
-#contactForm .form-group {
+#contactForm .form-group, #qaForm .form-group {
   display: flex;
 }
 
-#contactForm .form-group input {
+#contactForm .form-group input, #qaForm .form-group input {
   flex: 1;
   margin-left: 10px;
 }

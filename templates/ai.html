@@ -29,7 +29,7 @@
         <a class="active" href="/ai">AI</a>
       </nav>
     </section>
-    <section class="section-form">
+    <section class="section-form" id="aiTranscriptContainer">
       <h2>AI assistant</h2>
       <p>
         Given your podcast transcript (which you can generate <a href="/transcribe">here</a>), this tool allows you to ask questions about a podcast, and get answers from an AI assistant.
@@ -37,9 +37,26 @@
       <div id="read-data">
         <form id="aiForm">
           
-          <div class="form-group" id="fg-submit">
+          <div class="form-group">
             <button type="submit">Submit</button>
           </div>
+        </form>
+      </div>
+    </section>
+    <section class="section-form hidden" id="qaFormContainer">
+      <p>
+        Ask questions about your uploaded transcript here.
+      </p>
+      <div id="read-data">
+        <form id="qaForm">
+          <div class="form-group">
+            <label for="question">Question:</label>
+            <input type="text" id="question" name="question" placeholder="What is this podcast about?">
+          </div>
+          <div class="form-group" >
+            <button type="submit">Submit</button>
+          </div>
+          <div id="qaError" class="error"></div>
         </form>
       </div>
     </section>
