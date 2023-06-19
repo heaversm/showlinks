@@ -50,8 +50,10 @@ const addEventListeners = () => {
   const qaForm = document.getElementById("qaForm");
   qaForm.addEventListener("submit", function (e) {
     e.preventDefault();
-    const qaFormData = new FormData(qaForm);
-    fetch("api/qa", {
+    const qaFormData = new URLSearchParams(new FormData(qaForm));
+    //const qaFormData = new FormData(qaForm);
+
+    fetch("api/qa/", {
       method: "POST",
       body: qaFormData,
     })
@@ -73,7 +75,8 @@ const addEventListeners = () => {
       .catch((error) => {
         // Handle any errors that occur during the API request
         console.error("Error submitting form:", error);
-        document.getElementById("error").innerHTML = "Error submitting form";
+        document.getElementById("qaError").innerHTML =
+          "Error submitting form: " + error;
       });
   });
 };

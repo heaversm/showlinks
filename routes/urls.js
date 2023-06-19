@@ -343,17 +343,16 @@ router.post("/aitranscript", async (req, res) => {
 });
 
 router.post("/qa", async (req, res) => {
-  console.log(req.session.csrf);
-  console.log(req.csrfToken());
   console.log(req.body);
   const question = req.body.question;
+  console.log(question);
 
   try {
     const chainResponse = await chain.call({
       query: question,
     });
     console.log(question, chainResponse);
-    res.json({ message: chainResponse });
+    res.json({ message: chainResponse.text });
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: `Server Error ${err}` });
