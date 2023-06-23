@@ -4,6 +4,36 @@ const init = () => {
   addEventListeners();
 };
 
+const submitLinkToAI = (aiForm) => {
+  const link = document.getElementById("link").value;
+  console.log(link);
+  const aiFormData = new URLSearchParams(new FormData(aiForm));
+
+  const options = {
+    method: "POST",
+    body: aiFormData,
+  };
+
+  const statusField = document.getElementById("fileStatus");
+
+  fetch(`/api/aiLink/`, options)
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.error) {
+        console.log(data.error);
+        statusField.innerHTML = data.error;
+      } else {
+        console.log(data);
+        toggleVisibility("qaFormContainer", true);
+        toggleVisibility("aiTranscriptContainer", false);
+        statusField.innerHTML = "";
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
 const submitTranscriptToAI = (e) => {
   const inputFile = document.getElementById("file");
   const statusField = document.getElementById("fileStatus");
@@ -15,8 +45,6 @@ const submitTranscriptToAI = (e) => {
   statusField.innerHTML = "Analyzing";
 
   const formData = new FormData();
-  const aiForm = document.getElementById("aiForm");
-  // const formData = new URLSearchParams(new FormData(aiForm));
   formData.append("file", file || "");
   const format = document.getElementById("format").value;
   formData.append("format", format || "");
@@ -51,15 +79,20 @@ const clearFormFields = (formName) => {
 };
 
 const toggleVisibility = (elementId, visible) => {
-  console.log(elementId, visible);
   document.getElementById(elementId).classList.toggle("hidden", !visible);
 };
 
 const addEventListeners = () => {
-  document.getElementById("aiForm").addEventListener("submit", function (e) {
+  const aiForm = document.getElementById("aiForm");
+  aiForm.addEventListener("submit", function (e) {
     e.preventDefault();
-    console.log("submit");
-    submitTranscriptToAI(e);
+    //get format to determine if link or file
+    const format = document.getElementById("format").value;
+    if (format === "link") {
+      submitLinkToAI(aiForm);
+    } else {
+      submitTranscriptToAI(e);
+    }
   });
 
   document
@@ -67,7 +100,7 @@ const addEventListeners = () => {
     .addEventListener("change", function (e) {
       e.preventDefault();
       const format = document.getElementById("format").value;
-      console.log("change", format);
+      // console.log("change", format);
       if (format === "link") {
         document.getElementById("linkSubmit").classList.toggle("hidden", false);
         document.getElementById("fileSubmit").classList.toggle("hidden", true);

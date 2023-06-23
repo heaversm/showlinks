@@ -12,6 +12,7 @@ import ID3Writer from "browser-id3-writer";
 import { XMLHttpRequest } from "xmlhttprequest";
 import https from "https";
 
+
 import { OpenAI } from "langchain/llms/openai"; //https://js.langchain.com/docs/getting-started/install
 
 //FOR OPENAI DEMO
@@ -307,6 +308,103 @@ router.post("/stats", async (req, res) => {
   }
 });
 
+const getAudioFromURL = async (url) => {
+  return new Promise((resolve) => {
+    https
+      .get(url, (response) => {
+        // console.log("response", response);
+        if (response.statusCode === 200) {
+          const chunks = [];
+
+          response.on("data", (chunk) => {
+            chunks.push(chunk);
+          });
+
+          response.on("end", () => {
+            console.log("end");
+            const chunkedBuffer = Buffer.concat(chunks);
+            const fileID = nanoid();
+            const fileName = `${fileID}.mp3`;
+            // const arrayBuffer = toArrayBuffer(chunkedBuffer);
+            //fs.writeFileSync(fileName, arrayBuffer);
+
+            fs.writeFileSync(fileName, chunkedBuffer);
+            const filePath = path.join(__dirname, `../${fileName}`);
+            // return filePath;
+            return resolve(filePath);
+          });
+        } else {
+          //reject with the error message
+          return reject("Error retrieving MP3 file");
+        }
+      })
+      .on("error", (error) => {
+        console.error("Error retrieving MP3 file:", error);
+        return res.status(400).json({ error: error });
+      });
+  });
+};
+
+const createRetrieverFromTranscript = async (transcript) => {
+  //Split text into chunks
+  //https://js.langchain.com/docs/modules/indexes/text_splitters/
+  //https://medium.com/codingthesmartway-com-blog/unlock-the-power-of-language-models-combine-whisper-api-and-langchain-to-build-a-youtube-video-q-a-aa42a4c31d2b
+  const textsplitter = new CharacterTextSplitter({
+    separator: " ",
+    chunkSize: 512,
+    chunkOverlap: 0,
+  });
+  const texts = await textsplitter.splitText(transcript);
+
+  // Create metadata for each text
+  //MH not sure what's needed here for metadata, just seems to need something in this param
+  const metadatas = [];
+  texts.forEach((text, i) => {
+    const metadata = { id: i };
+    metadatas.push(metadata);
+  });
+
+  try {
+    // Create a vector store from the texts
+    const vectorStore = await FaissStore.fromTexts(
+      texts,
+      metadatas,
+      new OpenAIEmbeddings()
+    );
+    // Create a retriever from the vector store
+    const retriever = vectorStore.asRetriever();
+    return retriever;
+  } catch (err) {
+    console.log("Error establishing vector store", err);
+    return err;
+  }
+};
+
+router.post("/aiLink", async (req, res) => {
+  const { link } = req.body;
+  console.log(link);
+  if (!link || link === "") {
+    console.error("no valid url");
+    return res.status(400).json({ error: "Invalid podcast URL." });
+  }
+  const llm = new OpenAI();
+  const podcastFile = await getAudioFromURL(link);
+  console.log("podcastFilez", podcastFile);
+
+  const transcription = await transcribeAudio(podcastFile, "text");
+  fs.unlink(podcastFile, (err) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send("Error deleting file");
+      return;
+    }
+    console.log("File deleted!");
+  });
+  const retriever = await createRetrieverFromTranscript(transcription);
+  chain = RetrievalQAChain.fromLLM(llm, retriever);
+  res.json({ message: "QA Chain Established" });
+});
+
 router.post("/aitranscript", upload.single("file"), async (req, res) => {
   const { format, link } = req.body;
   console.log("format and link", format, link);
@@ -375,50 +473,9 @@ router.post("/aitranscript", upload.single("file"), async (req, res) => {
           }
           console.log("File deleted!");
         });
-
-        //Split text into chunks
-        //https://js.langchain.com/docs/modules/indexes/text_splitters/
-        //https://medium.com/codingthesmartway-com-blog/unlock-the-power-of-language-models-combine-whisper-api-and-langchain-to-build-a-youtube-video-q-a-aa42a4c31d2b
-        const textsplitter = new CharacterTextSplitter({
-          separator: " ",
-          chunkSize: 512,
-          chunkOverlap: 0,
-        });
-        const texts = await textsplitter.splitText(transcript);
-
-        // Create metadata for each text
-        //MH not sure what's needed here for metadata, just seems to need something in this param
-        const metadatas = [];
-        texts.forEach((text, i) => {
-          const metadata = { id: i };
-          metadatas.push(metadata);
-        });
-
-        try {
-          // Create a vector store from the texts
-          const vectorStore = await FaissStore.fromTexts(
-            texts,
-            metadatas,
-            new OpenAIEmbeddings()
-          );
-          // Create a retriever from the vector store
-          const retriever = vectorStore.asRetriever();
-          try {
-            // Create a chain that uses the OpenAI LLM and retriever.
-            chain = RetrievalQAChain.fromLLM(llm, retriever);
-            res.json({ message: "QA Chain Established" });
-          } catch (err) {
-            console.log("Error establishing retrieval chain", err);
-            res
-              .status(500)
-              .json({ error: `Error establishing retrieval chain: ${err}` });
-          }
-        } catch (err) {
-          console.log("Error establishing vector store", err);
-          res
-            .status(500)
-            .json({ error: `Error establishing vector store: ${err}` });
-        }
+        const retriever = await createRetrieverFromTranscript(transcript);
+        chain = RetrievalQAChain.fromLLM(llm, retriever);
+        res.json({ message: "QA Chain Established" });
       });
     }
   }

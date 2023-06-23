@@ -42,6 +42,7 @@ app.use(
       "/api/transcribe/",
       "/api/writeRad/",
       "/api/aitranscript/",
+      "/api/aiLink/",
       "/api/qa/",
       "https://api.openai.com/v1/audio/transcriptions",
     ]
