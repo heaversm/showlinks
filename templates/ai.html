@@ -31,14 +31,27 @@
     </section>
     <section class="section-form" id="aiTranscriptContainer">
       <h2>Show Q+A</h2>
-      <p>
+      <!-- <p>
         Given your podcast transcript (which you can generate <a href="/transcribe">here</a>), this tool allows you to ask questions about a podcast, and get answers from an AI assistant.
-      </p>
+      </p> -->
       <div id="read-data">
         <form id="aiForm">
-          <div class="form-group">
-            <label for="file">Transcript File:</label>
-            <input type="file" id="file" name="file" accept=".srt, .txt, .vtt" required>
+          <div class="form-group" id="formatSelect">
+            <label for="format">Format for your podcast: &nbsp;</label>
+            <select name="format" id="format">
+              <option disabled selected value> -- select -- </option>
+              <option value="link">RSS Link</option>
+              <option value="transcript">Transcript</option>
+              <option value="mp3">MP3</option>
+            </select>
+          </div>
+          <div class="form-group hidden" id="fileSubmit">
+            <label for="file">File:</label>
+            <input type="file" id="file" name="file" accept=".srt, .txt, .vtt, .mp3">
+          </div>
+          <div class="form-group hidden" id="linkSubmit">
+            <label for="link">RSS Link:</label>
+            <input type="url" id="link" name="link" placeholder="https://example.com/feed.rss">
           </div>
           <div class="form-group">
             <button type="submit">Submit</button>
@@ -67,7 +80,6 @@
     <section class="section-output">
       <div class="output-group" id="qaOutput"></div>
     </section>
-   
   </main>
   <script src="scripts/ai.js"></script>
 </body>

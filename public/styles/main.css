@@ -76,6 +76,11 @@ select {
   display: none;
 }
 
+.form-group.hidden {
+  display: none !important;
+}
+
+
 .bold {
   font-weight: bold;
 }
@@ -113,11 +118,12 @@ select {
 
 /* CONTACT */
 
-#contactForm .form-group, #qaForm .form-group {
+#contactForm .form-group, #qaForm .form-group, #aiForm .form-group {
   display: flex;
+  align-items: center;
 }
 
-#contactForm .form-group input, #qaForm .form-group input {
+#contactForm .form-group input, #qaForm .form-group input, #aiForm .form-group input {
   flex: 1;
   margin-left: 10px;
 }
@@ -129,3 +135,4 @@ select {
 #form-group-feedback textarea {
   margin-top: 10px;
 }
+

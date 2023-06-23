@@ -12,10 +12,16 @@ const submitTranscriptToAI = (e) => {
     return;
   }
   const file = inputFile.files[0];
-  statusField.innerHTML = "Studying transcript";
+  statusField.innerHTML = "Analyzing";
 
   const formData = new FormData();
-  formData.append("file", file);
+  const aiForm = document.getElementById("aiForm");
+  // const formData = new URLSearchParams(new FormData(aiForm));
+  formData.append("file", file || "");
+  const format = document.getElementById("format").value;
+  formData.append("format", format || "");
+  const link = document.getElementById("link").value;
+  formData.append("link", link || "");
 
   const options = {
     method: "POST",
@@ -55,6 +61,26 @@ const addEventListeners = () => {
     console.log("submit");
     submitTranscriptToAI(e);
   });
+
+  document
+    .getElementById("formatSelect")
+    .addEventListener("change", function (e) {
+      e.preventDefault();
+      const format = document.getElementById("format").value;
+      console.log("change", format);
+      if (format === "link") {
+        document.getElementById("linkSubmit").classList.toggle("hidden", false);
+        document.getElementById("fileSubmit").classList.toggle("hidden", true);
+      } else if (format === "transcript") {
+        document.getElementById("file").accept = ".txt";
+        document.getElementById("fileSubmit").classList.toggle("hidden", false);
+        document.getElementById("linkSubmit").classList.toggle("hidden", true);
+      } else if (format === "mp3") {
+        document.getElementById("file").accept = ".mp3";
+        document.getElementById("fileSubmit").classList.toggle("hidden", false);
+        document.getElementById("linkSubmit").classList.toggle("hidden", true);
+      }
+    });
 
   const qaForm = document.getElementById("qaForm");
   qaForm.addEventListener("submit", function (e) {

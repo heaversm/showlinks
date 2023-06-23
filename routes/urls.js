@@ -20,6 +20,7 @@ import { OpenAI } from "langchain/llms/openai"; //https://js.langchain.com/docs/
 
 //FOR OPENAI TRANSCRIPT INTERACTION
 import { TextLoader } from "langchain/document_loaders/fs/text";
+import { CharacterTextSplitter } from "langchain/text_splitter";
 import { FaissStore } from "langchain/vectorstores/faiss";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { RetrievalQAChain } from "langchain/chains"; //https://js.langchain.com/docs/modules/indexes/retrievers/remote-retriever
@@ -307,50 +308,119 @@ router.post("/stats", async (req, res) => {
 });
 
 router.post("/aitranscript", upload.single("file"), async (req, res) => {
-  const { transcript } = req.body;
+  const { format, link } = req.body;
+  console.log("format and link", format, link);
+  // res.status(500).json({ error: `We done` });
+  const llm = new OpenAI();
+  if ((req.file && format === "transcript") || (req.file && format === "mp3")) {
+    console.log("file", req.file);
+    const { originalname, mimetype, filename } = req.file;
+    const uploadPath = req.file.path;
+    const fileExt = originalname.slice(originalname.lastIndexOf("."));
+    // console.log(fileExt, filename, originalname, mimetype, uploadPath);
 
-  const { originalname, mimetype, filename } = req.file;
-  const uploadPath = req.file.path;
-  const fileExt = originalname.slice(originalname.lastIndexOf("."));
-  // console.log(fileExt, filename, originalname, mimetype, uploadPath);
+    if (format === "transcript") {
+      const transcriptPath = path.join(process.cwd(), uploadPath);
 
-  const transcriptPath = path.join(process.cwd(), uploadPath);
-  // res.json({ error: "test" });
+      const loader = new TextLoader(transcriptPath);
+      try {
+        // Create the doc loader;
+        const docs = await loader.load();
+        // Load the docs into the vector store
+        try {
+          // Create a vector store from the docs
+          const vectorStore = await FaissStore.fromDocuments(
+            docs,
+            new OpenAIEmbeddings()
+          );
 
-  const loader = new TextLoader(transcriptPath);
-  try {
-    const docs = await loader.load();
-
-    // Load the docs into the vector store
-
-    const llm = new OpenAI();
-
-    try {
-      const vectorStore = await FaissStore.fromDocuments(
-        docs,
-        new OpenAIEmbeddings()
-      );
-
-      const retriever = vectorStore.asRetriever();
-      // Create a chain that uses the OpenAI LLM and retriever.
-      chain = RetrievalQAChain.fromLLM(llm, retriever);
-      fs.unlink(transcriptPath, (err) => {
-        if (err) {
-          console.error(err);
-          res.status(500).send("Error deleting file");
-          return;
+          // Create a retriever from the vector store
+          const retriever = vectorStore.asRetriever();
+          // Create a chain that uses the OpenAI LLM and retriever.
+          chain = RetrievalQAChain.fromLLM(llm, retriever);
+          //remove the transcript file
+          fs.unlink(transcriptPath, (err) => {
+            if (err) {
+              console.error(err);
+              res.status(500).send("Error deleting file");
+              return;
+            }
+            res.json({ message: "QA Chain Established" });
+          });
+        } catch (err) {
+          console.log(err);
+          res
+            .status(500)
+            .json({ error: `Error establishing vector store: ${err}` });
         }
-        res.json({ message: "QA Chain Established" });
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: `Erorr loading transcript: ${err}` });
+      }
+    } else if (format === "mp3") {
+      const newFileName = filename + fileExt;
+      const origPodcastFile = path.join(process.cwd(), "uploads", filename);
+      const podcastFile = path.join(process.cwd(), "uploads", newFileName);
+      //rename file with extension
+      fs.rename(origPodcastFile, podcastFile, async () => {
+        //transcribe audio
+        const transcript = await transcribeAudio(podcastFile, "text");
+
+        //remove the podcast file
+        fs.unlink(podcastFile, (err) => {
+          if (err) {
+            console.error(err);
+            res.status(500).send("Error deleting file");
+            return;
+          }
+          console.log("File deleted!");
+        });
+
+        //Split text into chunks
+        //https://js.langchain.com/docs/modules/indexes/text_splitters/
+        //https://medium.com/codingthesmartway-com-blog/unlock-the-power-of-language-models-combine-whisper-api-and-langchain-to-build-a-youtube-video-q-a-aa42a4c31d2b
+        const textsplitter = new CharacterTextSplitter({
+          separator: " ",
+          chunkSize: 512,
+          chunkOverlap: 0,
+        });
+        const texts = await textsplitter.splitText(transcript);
+
+        // Create metadata for each text
+        //MH not sure what's needed here for metadata, just seems to need something in this param
+        const metadatas = [];
+        texts.forEach((text, i) => {
+          const metadata = { id: i };
+          metadatas.push(metadata);
+        });
+
+        try {
+          // Create a vector store from the texts
+          const vectorStore = await FaissStore.fromTexts(
+            texts,
+            metadatas,
+            new OpenAIEmbeddings()
+          );
+          // Create a retriever from the vector store
+          const retriever = vectorStore.asRetriever();
+          try {
+            // Create a chain that uses the OpenAI LLM and retriever.
+            chain = RetrievalQAChain.fromLLM(llm, retriever);
+            res.json({ message: "QA Chain Established" });
+          } catch (err) {
+            console.log("Error establishing retrieval chain", err);
+            res
+              .status(500)
+              .json({ error: `Error establishing retrieval chain: ${err}` });
+          }
+        } catch (err) {
+          console.log("Error establishing vector store", err);
+          res
+            .status(500)
+            .json({ error: `Error establishing vector store: ${err}` });
+        }
       });
-    } catch (err) {
-      console.log(err);
-      res
-        .status(500)
-        .json({ error: `Error establishing vector store: ${err}` });
     }
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: `Erorr loading transcript: ${err}` });
   }
 });
 
@@ -497,6 +567,25 @@ router.post("/writeRad", upload.single("file"), async (req, res, next) => {
   }
 });
 
+const transcribeAudio = async (podcastFile, format) => {
+  const transcription = await openai
+    .createTranscription(
+      fs.createReadStream(podcastFile),
+      "whisper-1",
+      "", //prompt
+      format //response format: json, vtt,srt, or text
+    )
+    .then(async (transcriptResponse) => {
+      console.log("transcribed");
+      let transcript = transcriptResponse.data;
+      return transcript;
+    })
+    .catch((err) => {
+      console.error("error transcribing", err);
+    });
+  return transcription;
+};
+
 // router.post("/transcribe", async (req, res) => {
 router.post("/transcribe", upload.single("file"), async (req, res, next) => {
   const { originalname, mimetype, filename } = req.file;
@@ -515,35 +604,21 @@ router.post("/transcribe", upload.single("file"), async (req, res, next) => {
   //const format = req.body.format;
 
   fs.rename(origPodcastFile, podcastFile, async () => {
-    await openai
-      .createTranscription(
-        fs.createReadStream(podcastFile),
-        "whisper-1",
-        "", //prompt
-        format //response format: json, vtt,srt, or text
-      )
-      .then(async (transcriptResponse) => {
-        console.log("transcribed");
-        let transcript = transcriptResponse.data;
+    let transcript = await transcribeAudio(podcastFile, format);
 
-        if (origFormat == "text") {
-          //convert srt to timestamped text
-          transcript = srtToTimestampedText(transcript);
-        }
+    if (origFormat == "text") {
+      //convert srt to timestamped text
+      transcript = srtToTimestampedText(transcript);
+    }
 
-        fs.unlink(podcastFile, (err) => {
-          if (err) {
-            console.error(err);
-            res.status(500).send("Error deleting file");
-            return;
-          }
-          res.json({ transcript: transcript });
-        });
-      })
-      .catch((err) => {
+    fs.unlink(podcastFile, (err) => {
+      if (err) {
         console.error(err);
-        res.status(500).json("Server Error");
-      });
+        res.status(500).send("Error deleting file");
+        return;
+      }
+      res.json({ transcript: transcript });
+    });
   });
 });
 
