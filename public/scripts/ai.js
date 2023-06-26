@@ -4,10 +4,15 @@ const init = () => {
   addEventListeners();
 };
 
-const submitLinkToAI = (aiForm) => {
-  const link = document.getElementById("link").value;
-  console.log(link);
-  const aiFormData = new URLSearchParams(new FormData(aiForm));
+// const submitLinkToAI = (aiForm) => {
+const submitLinkToAI = (link) => {
+
+  const formData = new FormData();
+  formData.append("link", link || "");
+
+  
+  // const aiFormData = new URLSearchParams(new FormData(aiForm));
+  const aiFormData = new URLSearchParams(formData);
 
   const options = {
     method: "POST",
@@ -104,16 +109,17 @@ const getAvailableEpisodes = () => {
       if (data.error) {
         console.log(data.error);
       } else {
-        const { mp3Urls } = data;
-        if (mp3Urls?.length) {
+        const { mp3s } = data;
+        console.log(mp3s);
+        if (mp3s?.length) {
           const mp3Selector = document.getElementById("mp3Selector");
           const mp3SelectorContainer = document.getElementById(
             "mp3SelectorContainer"
           );
-          mp3Urls.forEach((url) => {
+          mp3s.forEach((mp3) => {
             const option = document.createElement("option");
-            option.value = url;
-            option.text = url;
+            option.value = mp3.url;
+            option.text = mp3.title;
             mp3Selector.appendChild(option);
           });
           mp3SelectorContainer.classList.toggle("hidden", false);
@@ -133,13 +139,25 @@ const addEventListeners = () => {
     //get format to determine if link or file
     const format = document.getElementById("format").value;
     if (format === "link") {
-      submitLinkToAI(aiForm);
+      const link = document.getElementById("link").value;
+      console.log(link);
+      submitLinkToAI(link);
     } else if (format === "rss") {
       console.log("rss");
       getAvailableEpisodes();
     } else {
       submitTranscriptToAI(e);
     }
+  });
+
+  const mp3SelectorForm = document.getElementById("mp3SelectorForm");
+  mp3SelectorForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const mp3Selector = document.getElementById("mp3Selector");
+    const link = mp3Selector.value;
+    console.log(link);
+    // submitLinkToAI(mp3SelectorForm);
+    submitLinkToAI(link);
   });
 
   document
@@ -149,8 +167,12 @@ const addEventListeners = () => {
       const format = document.getElementById("format").value;
       // console.log("change", format);
       if (format === "link" || format === "rss") {
+        document.getElementById("link").value = "";
         document.getElementById("linkSubmit").classList.toggle("hidden", false);
         document.getElementById("fileSubmit").classList.toggle("hidden", true);
+        document
+          .getElementById("mp3SelectorContainer")
+          .classList.toggle("hidden", true);
       } else if (format === "transcript") {
         document.getElementById("file").accept = ".txt";
         document.getElementById("fileSubmit").classList.toggle("hidden", false);

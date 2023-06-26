@@ -325,7 +325,6 @@ const getAudioFromURL = async (url) => {
           });
 
           response.on("end", () => {
-            console.log("end");
             const chunkedBuffer = Buffer.concat(chunks);
             const fileID = nanoid();
             const fileName = `${fileID}.mp3`;
@@ -386,57 +385,34 @@ const createRetrieverFromTranscript = async (transcript) => {
 
 router.post("/getEpisodesFromRSS", async (req, res) => {
   const { feedURL } = req.body;
-  console.log("getEpisodes", feedURL);
-
-  // fetch(feedURL);
   try {
+    //MH TODO: had to switch to axios to get XML. Is there a way to do this with node-fetch?
     const response = await axios.get(feedURL);
-    // console.log(response);
     const xmlText = response.data;
-    console.log("xmlText", xmlText);
 
-    const parsedData = await parser
+    await parser
       .parseStringPromise(xmlText)
       .then((parsedData) => {
         const items = parsedData.rss.channel[0].item;
-        const mp3Urls = items.map((item) => item.enclosure[0].$.url);
-        console.log("mp3Urls", mp3Urls);
-        return res.status(200).json({
-          mp3Urls: mp3Urls,
+        const mp3s = items.map((item) => {
+          return {
+            title: item.title[0],
+            url: item.enclosure[0].$.url,
+          };
         });
-        //return mp3Urls;
+        // console.log("mp3s", mp3s);
+        return res.status(200).json({
+          mp3s: mp3s,
+        });
       })
       .catch((err) => {
         console.log(err);
         return res.status(400).json({ error: "Error parsing feed" });
       });
-    // console.log(parsedData);
   } catch (error) {
     console.error("Error fetching the feed:", error);
     return res.status(400).json({ error: "Error fetching feed" });
   }
-  // .then((response) => {
-  //   console.log("response", response);
-  //   response.text();
-  // })
-  // .then((xmlText) => {
-  //   console.log("xmlText", xmlText);
-  //   // const parser = new DOMParser();
-  //   // const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-  //   // const items = xmlDoc.getElementsByTagName("item");
-  //   // const mp3Urls = [];
-  //   // for (let i = 0; i < items.length; i++) {
-  //   //   const item = items[i];
-  //   //   const enclosure = item.getElementsByTagName("enclosure")[0];
-  //   //   const mp3Url = enclosure.getAttribute("url");
-  //   //   mp3Urls.push(mp3Url);
-  //   // }
-  //   // console.log(mp3Urls);
-  // })
-  // .catch((error) => {
-  //   console.error("Error fetching or parsing the feed:", error);
-  // });
-  //return res.status(400).json({ error: "TODO" });
 });
 
 router.post("/aiLink", async (req, res) => {
@@ -448,7 +424,6 @@ router.post("/aiLink", async (req, res) => {
   }
   const llm = new OpenAI();
   const podcastFile = await getAudioFromURL(link);
-  console.log("podcastFilez", podcastFile);
 
   const transcription = await transcribeAudio(podcastFile, "text");
   fs.unlink(podcastFile, (err) => {
@@ -457,7 +432,6 @@ router.post("/aiLink", async (req, res) => {
       res.status(500).send("Error deleting file");
       return;
     }
-    console.log("File deleted!");
   });
   const retriever = await createRetrieverFromTranscript(transcription);
   chain = RetrievalQAChain.fromLLM(llm, retriever);
