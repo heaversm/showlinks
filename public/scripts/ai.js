@@ -82,6 +82,50 @@ const toggleVisibility = (elementId, visible) => {
   document.getElementById(elementId).classList.toggle("hidden", !visible);
 };
 
+const getAvailableEpisodes = () => {
+  const feedURL = document.getElementById("link").value;
+  console.log(feedURL);
+  const formData = new FormData();
+  formData.append("feedURL", feedURL || "");
+  //const corsURL = `https://cors-anywhere.herokuapp.com/${feedURL}`;
+  // console.log(feedURL);
+  //MH TODO: need to deal with CORS issues maybe do this on the backend?
+  fetch("api/getEpisodesFromRSS/", {
+    method: "POST",
+    body: new URLSearchParams(formData),
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Request failed with status " + res.status);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      if (data.error) {
+        console.log(data.error);
+      } else {
+        const { mp3Urls } = data;
+        if (mp3Urls?.length) {
+          const mp3Selector = document.getElementById("mp3Selector");
+          const mp3SelectorContainer = document.getElementById(
+            "mp3SelectorContainer"
+          );
+          mp3Urls.forEach((url) => {
+            const option = document.createElement("option");
+            option.value = url;
+            option.text = url;
+            mp3Selector.appendChild(option);
+          });
+          mp3SelectorContainer.classList.toggle("hidden", false);
+        }
+      }
+    })
+    .catch((error) => {
+      // Handle any errors that occur during the API request
+      console.error("Error submitting form:", error);
+    });
+};
+
 const addEventListeners = () => {
   const aiForm = document.getElementById("aiForm");
   aiForm.addEventListener("submit", function (e) {
@@ -90,6 +134,9 @@ const addEventListeners = () => {
     const format = document.getElementById("format").value;
     if (format === "link") {
       submitLinkToAI(aiForm);
+    } else if (format === "rss") {
+      console.log("rss");
+      getAvailableEpisodes();
     } else {
       submitTranscriptToAI(e);
     }
@@ -101,7 +148,7 @@ const addEventListeners = () => {
       e.preventDefault();
       const format = document.getElementById("format").value;
       // console.log("change", format);
-      if (format === "link") {
+      if (format === "link" || format === "rss") {
         document.getElementById("linkSubmit").classList.toggle("hidden", false);
         document.getElementById("fileSubmit").classList.toggle("hidden", true);
       } else if (format === "transcript") {

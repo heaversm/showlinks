@@ -26,11 +26,11 @@
         <a href="/transcribe">Transcribe</a>
         <a href="/contact">Contact</a>
         <a href="/rad">RAD</a>
-        <a class="active" href="/ai">Podcast Q&A</a>
+        <a class="active" href="/ai">Q&A</a>
       </nav>
     </section>
     <section class="section-form" id="aiTranscriptContainer">
-      <h2>Podcast Q&A</h2>
+      <h2>Q&A</h2>
       <p>
         Ask questions about a podcast, and get answers from an AI assistant.
       </p>
@@ -40,7 +40,8 @@
             <label for="format">Format for your podcast: &nbsp;</label>
             <select name="format" id="format">
               <option disabled selected value> -- select -- </option>
-              <option value="link">RSS Link</option>
+              <option value="rss">RSS Feed</option>
+              <option value="link">MP3 URL</option>
               <option value="transcript">Transcript</option>
               <option value="mp3">MP3</option>
             </select>
@@ -51,12 +52,29 @@
           </div>
           <div class="form-group hidden" id="linkSubmit">
             <label for="link">RSS Link:</label>
-            <input type="url" id="link" name="link" placeholder="https://media.rss.com/digitalfuturestold/2023_03_07_20_45_19_d06c1ad6-ac3f-4f01-93fc-a9a01a7b76f2.mp3">
+            <input type="url" id="link" name="link" placeholder="link to your file or feed">
           </div>
           <div class="form-group">
             <button type="submit">Submit</button>
           </div>
           <div id="fileStatus" class="error"></div>
+        </form>
+      </div>
+    </section>
+    <section class="section-form hidden" id="mp3SelectorContainer">
+      <p class="instructions">Select your desired episode from the feed results:</p>
+      <div>
+        <form id="mp3SelectorForm">
+          <div class="form-group">
+            <label for="mp3Selector">Episode:</label>
+            <select name="mp3Selector" id="mp3Selector">
+              <option disabled selected value> -- select -- </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <button type="submit">Submit</button>
+          </div>
+          <div id="mp3SelectorError" class="error"></div>
         </form>
       </div>
     </section>
