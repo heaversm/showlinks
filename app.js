@@ -45,6 +45,8 @@ app.use(
       "/api/aiLink/",
       "/api/qa/",
       "/api/getEpisodesFromRSS/",
+      "/api/searchForPodcast/",
+      "/api/getOPIEpisodes/",
       "https://api.openai.com/v1/audio/transcriptions",
     ]
   )

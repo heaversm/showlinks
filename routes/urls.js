@@ -9,19 +9,16 @@ import { Configuration, OpenAIApi } from "openai";
 import * as fs from "fs";
 import multer from "multer";
 import ID3Writer from "browser-id3-writer";
-import { XMLHttpRequest } from "xmlhttprequest";
 import https from "https";
+import crypto from "crypto";
 
-//import axios
+// import { XMLHttpRequest } from "xmlhttprequest";
+import { OpenAI } from "langchain/llms/openai"; //https://js.langchain.com/docs/getting-started/install
+
+//FETCHING / SEARCHING
 import axios from "axios";
 import xml2js from "xml2js";
 const parser = new xml2js.Parser();
-
-import { OpenAI } from "langchain/llms/openai"; //https://js.langchain.com/docs/getting-started/install
-
-//FOR OPENAI DEMO
-// import { ChatOpenAI } from "langchain/chat_models/openai";
-// import { HumanChatMessage, SystemChatMessage } from "langchain/schema";
 
 //FOR OPENAI TRANSCRIPT INTERACTION
 import { TextLoader } from "langchain/document_loaders/fs/text";
@@ -50,6 +47,8 @@ const mg = mailgun.client({
 });
 
 const upload = multer({ dest: "uploads/" });
+
+const PODCAST_INDEX_API = "https://api.podcastindex.org/api/1.0/";
 
 const RAD_DATA = {
   remoteAudioData: {
@@ -101,7 +100,7 @@ const generateDurationEvents = (duration) => {
     const eventNum = i + defaultEvents;
     const eventNumStr = eventNum.toString();
     const durationTimestamp = secondsToTimestamp(durationIncrement * (i + 1));
-    console.log("durationTimestamp", durationTimestamp);
+    // console.log("durationTimestamp", durationTimestamp);
     const durationEvent = {
       eventTime: durationTimestamp,
       label: `podcastDuration${eventNum}`,
@@ -313,7 +312,7 @@ router.post("/stats", async (req, res) => {
 });
 
 const getAudioFromURL = async (url) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     https
       .get(url, (response) => {
         // console.log("response", response);
@@ -383,16 +382,100 @@ const createRetrieverFromTranscript = async (transcript) => {
   }
 };
 
+const fetchFromOPI = async (endpoint, query) => {
+  const apiKey = process.env.PODCAST_INDEX_KEY;
+  const apiSecret = process.env.PODCAST_INDEX_SECRET;
+
+  // ======== Hash them to get the Authorization token ========
+  const apiHeaderTime = Math.floor(Date.now() / 1000);
+  const sha1Algorithm = "sha1";
+  const sha1Hash = crypto.createHash(sha1Algorithm);
+  const data4Hash = apiKey + apiSecret + apiHeaderTime;
+  sha1Hash.update(data4Hash);
+  const hash4Header = sha1Hash.digest("hex");
+  // ======== Send the request and collect/show the results ========
+  const options = {
+    method: "get",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Auth-Date": "" + apiHeaderTime,
+      "X-Auth-Key": apiKey,
+      Authorization: hash4Header,
+      "User-Agent": "Showlinks/0.1",
+    },
+  };
+
+  const url = `${PODCAST_INDEX_API}${endpoint}${query}`;
+  // console.log("url", url);
+  try {
+    const response = await axios.get(url, options);
+    // console.log("response", response);
+    const data = response.data;
+    return data;
+  } catch {
+    return "error querying podcast index";
+  }
+};
+
+router.post("/searchForPodcast", async (req, res) => {
+  const { query } = req.body;
+
+  const data = await fetchFromOPI("search/byterm?q=", query);
+
+  if (data?.feeds?.length > 0) {
+    const items = data.feeds;
+    const feeds = items.map((item) => {
+      return {
+        title: item.title,
+        url: item.url,
+      };
+    });
+    return res.status(200).json({
+      feeds: feeds,
+    });
+  } else {
+    return res
+      .status(400)
+      .json({ error: "No feeds found for this search term" });
+  }
+});
+
+router.post("/getOPIEpisodes", async (req, res) => {
+  const { feedURL } = req.body;
+  // console.log(feedURL);
+  const data = await fetchFromOPI("episodes/byfeedurl?max=2&url=", feedURL);
+  // console.log("OPI Episodes", data);
+
+  if (data?.items?.length > 0) {
+    const items = data.items;
+    const mp3s = items.map((item) => {
+      return {
+        title: item.title,
+        url: item.enclosureUrl,
+      };
+    });
+    return res.status(200).json({
+      mp3s: mp3s,
+    });
+  } else {
+    return res
+      .status(400)
+      .json({ error: "No episodes found for this podcast" });
+  }
+});
+
 router.post("/getEpisodesFromRSS", async (req, res) => {
   const { feedURL } = req.body;
   try {
     //MH TODO: had to switch to axios to get XML. Is there a way to do this with node-fetch?
     const response = await axios.get(feedURL);
     const xmlText = response.data;
+    // console.log("xmlText", xmlText);
 
     await parser
       .parseStringPromise(xmlText)
       .then((parsedData) => {
+        // console.log("episodes", parsedData);
         const items = parsedData.rss.channel[0].item;
         const mp3s = items.map((item) => {
           return {
@@ -417,7 +500,7 @@ router.post("/getEpisodesFromRSS", async (req, res) => {
 
 router.post("/aiLink", async (req, res) => {
   const { link } = req.body;
-  console.log(link);
+  // console.log(link);
   if (!link || link === "") {
     console.error("no valid url");
     return res.status(400).json({ error: "Invalid podcast URL." });
@@ -440,11 +523,9 @@ router.post("/aiLink", async (req, res) => {
 
 router.post("/aitranscript", upload.single("file"), async (req, res) => {
   const { format, link } = req.body;
-  console.log("format and link", format, link);
-  // res.status(500).json({ error: `We done` });
+  // console.log("format and link", format, link);
   const llm = new OpenAI();
   if ((req.file && format === "transcript") || (req.file && format === "mp3")) {
-    console.log("file", req.file);
     const { originalname, mimetype, filename } = req.file;
     const uploadPath = req.file.path;
     const fileExt = originalname.slice(originalname.lastIndexOf("."));
@@ -515,7 +596,7 @@ router.post("/aitranscript", upload.single("file"), async (req, res) => {
 });
 
 router.post("/qa", async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   const question = req.body.question;
   try {
     const chainResponse = await chain.call({
@@ -566,8 +647,7 @@ const sendSongToClient = async (arrayBuffer, stringifiedRadData, res) => {
   fs.writeFileSync(fileName, taggedSongBuffer);
 
   const filePath = path.join(__dirname, `../${fileName}`);
-  // res.download("temp-rad-file.mp3"); // Set disposition and send it.
-  console.log("filePath", filePath);
+  // console.log("filePath", filePath);
 
   fs.stat(filePath, (error, stats) => {
     if (error) {
@@ -596,7 +676,7 @@ const sendSongToClient = async (arrayBuffer, stringifiedRadData, res) => {
 
 router.post("/writeRad", upload.single("file"), async (req, res, next) => {
   const method = req.body.method;
-  console.log("method", method);
+  // console.log("method", method);
   if (!method) {
     console.error("no method specified");
     return res.status(400).json({ error: "Invalid podcast URL." });
@@ -604,7 +684,7 @@ router.post("/writeRad", upload.single("file"), async (req, res, next) => {
 
   //COMMON
   const duration = req.body.duration;
-  console.log("duration", duration);
+  // console.log("duration", duration);
 
   if (!duration || duration === "") {
     console.error("no valid url");
@@ -666,7 +746,6 @@ const transcribeAudio = async (podcastFile, format) => {
       format //response format: json, vtt,srt, or text
     )
     .then(async (transcriptResponse) => {
-      console.log("transcribed");
       let transcript = transcriptResponse.data;
       return transcript;
     })
