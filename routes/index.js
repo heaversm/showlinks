@@ -3,9 +3,10 @@ import process from "process";
 import express from "express";
 import Url from "../models/Url.js";
 import Stat from "../models/Stat.js";
-//import the ua-parser node module
 import UAParser from "ua-parser-js";
 import axios from "axios";
+
+import { comments } from "../data/data.js";
 
 const router = express.Router();
 const templates = path.join(process.cwd(), "templates");
@@ -16,42 +17,25 @@ const osRegex =
   /(iphone|ipad|ipod|android|windows phone|windows nt|mac os x)\s([0-9._]+)/i;
 const deviceRegex = /android.+; (mobile)|(windows phone)/i;
 
+
 router.get("/", (req, res) => {
   // res.sendFile(path.join(__dirname, "./client"));
   //__dirname is not defined - not sure why...using this hack instead
   //https://stackoverflow.com/questions/26079611/node-js-typeerror-path-must-be-absolute-or-specify-root-to-res-sendfile-failed
-  res.sendFile("index.html", { root: templates });
-});
-
-router.get("/stats", (req, res) => {
-  res.sendFile("stats.html", { root: templates });
+  // res.sendFile("op.html", { root: templates });
+  req.session.csrf = req.csrfToken();
+  res.render("pages/op", { token: req.session.csrf, comments: comments });
 });
 
 router.get("/dashboard", (req, res) => {
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-  //next();
   res.sendFile("dashboard.html", { root: templates });
 });
 
-router.get("/privacy", (req, res) => {
-  res.sendFile("privacy.html", { root: templates });
-});
-
-router.get("/contact", (req, res) => {
+router.get("/op", (req, res) => {
   req.session.csrf = req.csrfToken();
-  res.sendFile("contact.html", { root: templates, token: req.session.csrf });
-});
-
-router.get("/transcribe", (req, res) => {
-  res.sendFile("transcribe.html", { root: templates });
-});
-
-router.get("/rad", (req, res) => {
-  res.sendFile("rad.html", { root: templates });
-});
-
-router.get("/ai", (req, res) => {
-  res.sendFile("ai.html", { root: templates, token: req.session.csrf });
+  // res.sendFile("op.html", { root: templates, token: req.session.csrf });
+  res.render("pages/op", { token: req.session.csrf });
 });
 
 router.get("/:urlId", async (req, res) => {

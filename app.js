@@ -13,7 +13,8 @@ const app = express();
 connectDB();
 
 import indexRouter from "./routes/index.js";
-import urlsRouter from "./routes/urls.js";
+// import urlsRouter from "./routes/urls.js";
+import apiRouter from "./routes/api.js";
 
 const publicDir = path.join(process.cwd(), "public");
 
@@ -52,8 +53,9 @@ app.use(
   )
 );
 
+app.set("view engine", "ejs");
 app.use('/', indexRouter);
-app.use('/api', urlsRouter);
+app.use("/api", apiRouter);
 
 
 // //CORS for google TODO: set to same-origin-allow-popups if this works

@@ -1,0 +1,8 @@
+<% comments.forEach(function(comment){ %>
+  <div class="comment__container">
+    <%- include('./comment-header', {comment: comment}); %>
+    <%- include('./comment-body', {comment: comment}); %>
+    <%- include('./comment-votes-and-comments', {comment: comment}); %>
+  </div>
+<% }); %>
+
