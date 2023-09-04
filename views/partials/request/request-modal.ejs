@@ -1,0 +1,55 @@
+<div class="request__modal-container">
+  <div class="request__modal-bg"></div>
+  <div class="request__modal-container-inner">
+    <div class="request__modal-content">
+      <div class="request__modal-header flex align-center">
+        <h2 class="request__modal-title">Make a request</h2>
+        <svg id="request__button-close" role="button" class="request__modal-close" xmlns="http://www.w3.org/2000/svg" width="16" height="15" viewBox="0 0 16 15" fill="none">
+          <line x1="0.646447" y1="14.6464" x2="14.6464" y2="0.646447" stroke="black"/>
+          <line y1="-0.5" x2="19.799" y2="-0.5" transform="matrix(-0.707107 -0.707107 -0.707107 0.707107 15 15)" stroke="black"/>
+        </svg>
+      </div>
+      <div class="request__modal-body">
+        <form id="request__form" method="POST" action="/api/saveRequest">
+          <div class="request__input-container">
+            <label for="request__title" class="request__label">Title</label>
+            <input type="text" name="request__title" id="request__title" placeholder="Enter your title" spellcheck="true">
+          </div>
+          <div class="request__input-container --textarea">
+            <label for="request__description" class="request__label">Request</label>
+            <textarea name="request__description" id="request__description" cols="30" rows="10" placeholder="Enter your description" spellcheck="true"></textarea>
+          </div>
+          <div class="request__input-container">
+            <label for="request__priority" class="request__label">Priority</label>
+            <select name="request__priority" id="request__priority">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="request__input-container">
+            <label for="request__category" class="request__label">Category</label>
+            <select name="request__category" id="request__category">
+              <option value="transportation">Transportation</option>
+              <option value="housing">Housing</option>
+              <option value="education">Education</option>
+              <option value="healthcare">Health Care</option>
+              <option value="environment">Environment</option>
+              <option value="safety">Public Safety</option>
+              <option value="leisure">Leisure</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="request__input-container">
+            <%# generate form input and label for username %>
+            <label for="request__username" class="request__label">Username</label>
+            <input type="text" name="request__username" id="request__username" placeholder="Enter your username" spellcheck="true">
+          </div>
+          <div class="request__input-container">
+            <button id="request__submit-button" class="request__button w-100" type="submit">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

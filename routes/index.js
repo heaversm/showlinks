@@ -2,6 +2,7 @@ import path from "path";
 import process from "process";
 import express from "express";
 import Url from "../models/Url.js";
+import Request from "../models/Request.js";
 import Stat from "../models/Stat.js";
 import UAParser from "ua-parser-js";
 import axios from "axios";
@@ -17,14 +18,17 @@ const osRegex =
   /(iphone|ipad|ipod|android|windows phone|windows nt|mac os x)\s([0-9._]+)/i;
 const deviceRegex = /android.+; (mobile)|(windows phone)/i;
 
-
-router.get("/", (req, res) => {
-  // res.sendFile(path.join(__dirname, "./client"));
-  //__dirname is not defined - not sure why...using this hack instead
-  //https://stackoverflow.com/questions/26079611/node-js-typeerror-path-must-be-absolute-or-specify-root-to-res-sendfile-failed
-  // res.sendFile("op.html", { root: templates });
+router.get("/", async (req, res) => {
   req.session.csrf = req.csrfToken();
-  res.render("pages/op", { token: req.session.csrf, comments: comments });
+  try {
+    const requests = await Request.find().sort({ request_date: -1 });
+    // res.status(200).json(requests);`
+    // res.render("pages/op", { token: req.session.csrf, comments: comments });
+    res.render("pages/op", { token: req.session.csrf, comments: requests });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: `Server Error ${err}` });
+  }
 });
 
 router.get("/dashboard", (req, res) => {

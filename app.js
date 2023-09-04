@@ -48,6 +48,7 @@ app.use(
       "/api/getEpisodesFromRSS/",
       "/api/searchForPodcast/",
       "/api/getOPIEpisodes/",
+      "/api/saveRequest",
       "https://api.openai.com/v1/audio/transcriptions",
     ]
   )

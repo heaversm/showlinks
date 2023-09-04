@@ -3,8 +3,14 @@
     <img src="https://source.unsplash.com/80x80/?portrait">
   </div>
   <div class="comment__user-timestamp-container">
-    <p class="comment__username"><%= comment.name %></p>
-    <p class="comment__timestamp"><%= comment.date %></p>
+    <p class="comment__username"><%= comment.request__username %></p>
+    <p class="comment__timestamp">
+      <%= new Date(comment.request__date).toLocaleDateString(undefined, {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+      }) %>
+    </p>
   </div>
   <div class="comment__more-dots-container">
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">

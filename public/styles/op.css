@@ -39,7 +39,7 @@ h1,h2,h3,h4,h5,h6 {
   font-weight: 400;
 }
 
-textarea {
+textarea,input {
   font-family: Roboto, Inter, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
 }
 
@@ -49,8 +49,16 @@ textarea {
   display: flex;
 }
 
+.flex-col {
+  flex-direction: column;
+}
+
 .align-center {
   align-items: center;
+}
+
+.w-100 {
+  width: 100%;
 }
 
 /* PAGE */
@@ -60,6 +68,7 @@ textarea {
   background-color: var(--op-site-bg);
   margin: 0 auto;
   position: relative;
+  min-height: 100vh;
 }
 
 
@@ -173,6 +182,7 @@ textarea {
   bottom: 0;
   left: 0;
   width: 100%;
+  display: none;
 }
 
 .request__button-container-inner {
@@ -188,6 +198,7 @@ textarea {
   border: 0;
   border-radius: 4px;
   font-size: .875rem;
+  cursor: pointer;
 }
 
 #request__button {
@@ -245,6 +256,7 @@ textarea {
 .request__modal-close {
   background-color: transparent;
   border: 0;
+  cursor: pointer;
 }
 
 .request__modal-body {
@@ -261,6 +273,36 @@ textarea {
   margin-top: .5rem;
 }
 
+.request__input-container {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.request__input-container label {
+  font-size: .75rem;
+}
+
+.request__input-container input, .request__input-container select, .request__input-container textarea {
+  flex-grow: 1;
+  padding: .25rem;
+}
+
+.request__input-container input, .request__input-container select {
+  margin-left: .5rem;
+}
+
+.request__input-container.--textarea {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.request__input-container.--textarea textarea {
+  width: 100%;
+  margin-left: 0;
+  margin-top: 1rem;
+} 
+
 /* JAVASCRIPT */
 
 .js__request-active {
@@ -268,5 +310,9 @@ textarea {
 }
 
 .js__request-active .request__modal-container {
+  display: block;
+}
+
+.js__request-button-active .request__button-container {
   display: block;
 }
