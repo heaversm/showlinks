@@ -106,7 +106,7 @@ router.post("/saveRequest", async (req, res) => {
   await saveRequest.save();
   console.log("request saved");
   //TODO: could handle async response. For now, just redirect
-  res.redirect("/");
+  res.redirect("/op");
 });
 
 router.get("/generateRequest", async (req, res) => {

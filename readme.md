@@ -1,5 +1,9 @@
 # One Project Participatory Budgeting
 
+**Note**: I am repurposing the heroku setup from a previous project, which allowed me to quickly bootstrap the heroku server, database connection, and frontend. 
+
+This will not be a permanent URL.
+
 ## Run Locally
 
 * Prerequisites:
@@ -53,5 +57,5 @@ Database was established with the following steps, which could be ammended to se
 
 [One Project Participatory Budgeting](https://showlinks.herokuapp.com/op)
 
-**Note**: I am repurposing the heroku setup from a previous project. This will not be a permanent URL.
+
 
