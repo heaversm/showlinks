@@ -35,11 +35,21 @@
     </div>
   </div>
   <div class="request__modal-container">
-    <div class="request__modal-container-inner">
     <div class="request__modal-bg"></div>
-    <div class="request__modal-content">
-    </div>
-
+    <div class="request__modal-container-inner">
+      <div class="request__modal-content">
+        <div class="request__modal-header flex align-center">
+          <h2 class="request__modal-title">Make a request</h2>
+          <svg id="request__button-close" role="button" class="request__modal-close" xmlns="http://www.w3.org/2000/svg" width="16" height="15" viewBox="0 0 16 15" fill="none">
+            <line x1="0.646447" y1="14.6464" x2="14.6464" y2="0.646447" stroke="black"/>
+            <line y1="-0.5" x2="19.799" y2="-0.5" transform="matrix(-0.707107 -0.707107 -0.707107 0.707107 15 15)" stroke="black"/>
+          </svg>
+        </div>
+        <div class="request__modal-body">
+          <textarea name="request" id="request" cols="30" rows="10" placeholder="Enter your request" spellcheck="true"></textarea>
+          <button id="request__submit-button" class="request__button">Submit</button>
+        </div>
+      </div>
     </div>
   </div>
   <script src="scripts/op.js"></script>
