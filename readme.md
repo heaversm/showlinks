@@ -1,20 +1,18 @@
-# Showlinks
-
-Gain insights on user interaction with your podcast show notes
+# One Project Participatory Budgeting
 
 ## Run Locally
 
-* Clone the project**
+* Prerequisites:
+  * Node.js
+  * npm
+  * MongoDB Atlas account
 
-* Get the `.env` file from the project owner
 
-* [Sign up for the mongo atlas free tier](https://www.mongodb.com/cloud/atlas)
+* Clone the project
 
-  * Choose your region and click on the "Create a free cluster" button
-  * Choose "Connect Your Application" from the "choose a connection method" modal
-  * Copy your connection URL and paste it in the .env file's `MONGO_URI` variable
+* Get the `.env` file from the project owner with required api keys
 
-* Install dependencies*
+* Install dependencies
 
 ```bash
   npm install
@@ -28,54 +26,32 @@ Gain insights on user interaction with your podcast show notes
 
 ## API Reference
 
-### Shorten URL
+* `/getRequests` - gets all requests from our cloud DB
+* `/establishLLM` - sets up the LLM for auto request generation
+* `/saveRequest` - saves an individual request to the database
+* `/generateRequest` - generates an AI based request which gets populated on our request form modal
+* `/csrf` gets the CSRF token. Unused currently
 
-```http
-  POST /api/short
-```
+## Tech Stack
+* Database: MongoDB Cloud Atlas
+* Backend: Node.js, Express.js
+* Frontend: Static HTML, CSS, JS, EJS templating engine
+* OpenAI, FAISS, Langchain - LLM Request generation
 
-| Field | Type   | Description  |
-| :---- | :----- | :----------- |
-| Body  | `json` | Original Url |
 
-**Example:**
+## Database Setup Notes
 
-```http
-POST http://localhost:3333/api/short
-Content-Type: application/json
+Database was established with the following steps, which could be ammended to set up your own DB.
 
-{
-    "origUrl": "https://nemo.hashnode.dev/an-introduction-to-recursion-using-javascript-ckfgx2nrq001xols17h787f87"
-}
+* [Sign up for the mongo atlas free tier](https://www.mongodb.com/cloud/atlas)
 
-```
+  * Choose your region and click on the "Create a free cluster" button
+  * Choose "Connect Your Application" from the "choose a connection method" modal
+  * Copy your connection URL and paste it in the .env file's `MONGO_URI` variable
 
-### Get item
+## View online
 
-```http
-  GET /:id
-```
+[One Project Participatory Budgeting](https://showlinks.herokuapp.com/op)
 
-| Parameter | Type     | Description     |
-| :-------- | :------- | :-------------- |
-| `id`      | `string` | Unique URL Code |
+**Note**: I am repurposing the heroku setup from a previous project. This will not be a permanent URL.
 
-**Example:**
-
-```http
-GET http://localhost:3333/SLiCKEXdn
-```
-
-### Generate User ID
-  
-  ```http
-    GET /api/generateUserId
-  ```
-
-### Get Stats
-
-  ```http
-    GET /api/stats
-  ```
-
-Pass either a `userId`, `episodeId` or `shortUrl` in the body to get the stats for that particular item
