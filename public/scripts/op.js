@@ -1,15 +1,15 @@
 console.log("op.js loaded");
 
 const CONFIG = {
-  TRIGGER_AUTO_REQUEST: true,
+  TRIGGER_AUTO_REQUEST: true, //when true, generate requests via LLM / AI vs user input
 };
 
 const toggleRequestModal = function (isActive) {
-  document.body.classList.toggle("js__request-active", isActive);
+  document.body.classList.toggle("js__request-active", isActive); //show or hide request modal
 };
 
 const toggleRequestButton = function (isActive) {
-  document.body.classList.toggle("js__request-button-active", isActive);
+  document.body.classList.toggle("js__request-button-active", isActive); //show request button (when LLM is ready)
 };
 
 const getRequestsFromDB = function () {
@@ -50,6 +50,7 @@ const establishLLM = function () {
 };
 
 const populateRequestModal = function (request) {
+  //take the data from our LLM and populate the form
   const request__title = document.getElementById("request__title");
   const request__description = document.getElementById("request__description");
   const request__category = document.getElementById("request__category");
@@ -67,6 +68,7 @@ const populateRequestModal = function (request) {
 };
 
 const generateRequest = function () {
+  //get the LLM to generate form data
   console.log("generating request");
 
   const options = {
@@ -110,11 +112,6 @@ const addEventListeners = function () {
   document
     .getElementById("request__button-close")
     .addEventListener("click", onRequestCloseClick);
-
-  // const requestForm = document.getElementById("request__form");
-  // requestForm.addEventListener("submit", function (e) {
-  //   e.preventDefault();
-  // });
 };
 
 const init = function () {
